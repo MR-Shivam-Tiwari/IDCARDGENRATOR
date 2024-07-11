@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import html2canvas from 'html2canvas';
 import IdCardrender from './IdCardrender';
+import { useNavigate } from 'react-router-dom';
 
 function handleDownload(idCardId) {
     const idCardElement = document.getElementById(`id-card-${idCardId}`);
@@ -24,7 +25,7 @@ function CreateId() {
     const [idCards, setIdCards] = useState([]);
     const [backgroundImage, setBackgroundImage] = useState(null);
     const [profilePicture, setProfilePicture] = useState(null);
-
+    const navigate = useNavigate();
     const handleClick = (id) => {
         setSelected(id);
     };
@@ -86,12 +87,21 @@ function CreateId() {
                         </svg>
                         <span className="font-bold tracking-tight">Event App</span>
                     </a>
-                    <button
-                        onClick={toggleModal}
-                        className="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium bg-black text-white transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-9 rounded-md px-3"
-                    >
-                        Create ID
-                    </button>
+                    <div className='flex gap-10'>
+
+                        <button
+                            onClick={toggleModal}
+                            className="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium bg-black text-white transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-9 rounded-md px-3"
+                        >
+                            Create ID
+                        </button>
+                        <button
+                            onClick={() => navigate('/bulk-create-id')}
+                            className="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium bg-black text-white transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-9 rounded-md px-3"
+                        >
+                            Bulk   Create
+                        </button>
+                    </div>
                 </div>
             </header>
             {modal && (
