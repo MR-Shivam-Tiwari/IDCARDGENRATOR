@@ -16,6 +16,10 @@ function CreateId() {
     const [eventId, setEventId] = useState('');
     const [eventName, setEventName] = useState('');
     const [selectedIdCardType, setSelectedIdCardType] = useState('vertical');
+
+    const handleClick = (type) => {
+        setSelectedIdCardType(type);
+    };
     const location = useLocation();
 
     useEffect(() => {
@@ -245,17 +249,42 @@ function CreateId() {
                                                     Select ID Card Type
                                                 </label>
                                                 <div className="mt-1">
-                                                    <select
-                                                        id="idCardType"
-                                                        name="idCardType"
-                                                        className="block w-full px-3 py-2 mt-1 text-sm bg-white border border-gray-300 rounded-md shadow-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-opacity-50 focus-visible:outline-none"
-                                                        value={selectedIdCardType}
-                                                        onChange={(e) => setSelectedIdCardType(e.target.value)}
-                                                        required
-                                                    >
-                                                        <option value="vertical">Vertical</option>
-                                                        <option value="horizontal">Horizontal</option>
-                                                    </select>
+                                                    <ul className="flex items-center gap-5 justify-between text-sm font-medium text-gray-500 dark:text-gray-400 mb-4">
+                                                        <li className="w-full">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleClick('vertical')}
+                                                                className={`inline-flex items-center px-4 py-3 h-[50px] border text-black rounded w-full ${selectedIdCardType === 'vertical' ? 'bg-black text-white' : 'bg-gray-200'}`}
+                                                            >
+                                                                <div className={`border h-8 w-6 grid py-[2px] items-center justify-center rounded-[2px] me-2 ${selectedIdCardType === 'vertical' ? 'border-black' : 'border-white'}`}>
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-person" viewBox="0 0 16 16">
+                                                                        <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6m2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0m4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4m-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10s-3.516.68-4.168 1.332c-.678.678-.83 1.418-.832 1.664z" />
+                                                                    </svg>
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-border-width" viewBox="0 0 16 16">
+                                                                        <path d="M0 3.5A.5.5 0 0 1 .5 3h15a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5H.5a.5.5 0 0 1-.5-.5zm0 5A.5.5 0 0 1 .5 8h15a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5H.5a.5.5 0 0 1-.5-.5zm0 4a.5.5 0 0 1 .5-.5h15a.5.5 0 0 1 0 1H.5a.5.5 0 0 1-.5-.5" />
+                                                                    </svg>
+                                                                </div>
+                                                                Vertical
+                                                            </button>
+                                                        </li>
+                                                        <li className="w-full">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleClick('horizontal')}
+                                                                className={`inline-flex items-center px-4 py-3 border text-black rounded w-full ${selectedIdCardType === 'horizontal' ? 'bg-black text-white' : 'bg-gray-200'}`}
+                                                            >
+                                                                <div className={`border flex items-center justify-between px-[2px] h-6 w-10 rounded-[2px] me-2 ${selectedIdCardType === 'horizontal' ? 'border-white' : 'border-black'}`}>
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-person" viewBox="0 0 16 16">
+                                                                        <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6m2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0m4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4m-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10s-3.516.68-4.168 1.332c-.678.678-.83 1.418-.832 1.664z" />
+                                                                    </svg>
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-border-width" viewBox="0 0 16 16">
+                                                                        <path d="M0 3.5A.5.5 0 0 1 .5 3h15a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5H.5a.5.5 0 0 1-.5-.5zm0 5A.5.5 0 0 1 .5 8h15a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5H.5a.5.5 0 0 1-.5-.5zm0 4a.5.5 0 0 1 .5-.5h15a.5.5 0 0 1 0 1H.5a.5.5 0 0 1-.5-.5" />
+                                                                    </svg>
+                                                                </div>
+                                                                Horizontal
+                                                            </button>
+                                                        </li>
+                                                    </ul>
                                                 </div>
                                             </div>
                                             <div>
