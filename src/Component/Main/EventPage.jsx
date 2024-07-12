@@ -69,7 +69,7 @@ function EventPage() {
     }, []);
     const handleTaskView = (groupId, groupName) => {
         // Navigate to the /task route with the group ID and group name as parameters
-        navigate(`/create-id?groupId=${groupId}&groupName=${groupName}`);
+        navigate(`/create-id?eventid=${groupId}&eventName=${groupName}`);
     };
     return (
         <div>

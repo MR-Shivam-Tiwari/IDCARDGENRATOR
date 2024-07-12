@@ -56,7 +56,7 @@ function BulkCreateID() {
         setModal(false);
     };
 
-
+console.log("data", data)
     return (
         <div>
             <header className="sticky top-0 z-50 w-full bg-gray-200 shadow-sm">
@@ -147,10 +147,25 @@ function BulkCreateID() {
                                         <div className="mt-1">
                                             <ul className="flex items-center gap-5 justify-between text-sm font-medium text-gray-500 dark:text-gray-400 mb-4">
                                                 <li className="w-full">
-                                                    <a href="#" onClick={() => handleClick('profile')} className={`inline-flex items-center px-4 py-3 h-[50px] border text-black rounded w-full ${selected === 'profile' ? 'bg-black text-white' : 'bg-gray-200'}`}>Vertical</a>
+                                                    <a href="#" onClick={() => handleClick('profile')} className={`inline-flex items-center px-4 py-3 h-[50px] border text-black rounded w-full ${selected === 'profile' ? 'bg-black text-white' : 'bg-gray-200'}`}><div className={`border h-8 w-6 grid py-[2px] items-center justify-center rounded-[2px] me-2 ${selected === 'dashboard' ? 'border-black' : 'border-white'}`}>
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person" viewBox="0 0 16 16">
+                                                            <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6m2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0m4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4m-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10s-3.516.68-4.168 1.332c-.678.678-.83 1.418-.832 1.664z" />
+                                                        </svg>
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-border-width" viewBox="0 0 16 16">
+                                                            <path d="M0 3.5A.5.5 0 0 1 .5 3h15a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5H.5a.5.5 0 0 1-.5-.5zm0 5A.5.5 0 0 1 .5 8h15a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5H.5a.5.5 0 0 1-.5-.5zm0 4a.5.5 0 0 1 .5-.5h15a.5.5 0 0 1 0 1H.5a.5.5 0 0 1-.5-.5" />
+                                                        </svg>
+                                                    </div>Vertical</a>
                                                 </li>
                                                 <li className="w-full">
-                                                    <a href="#" onClick={() => handleClick('dashboard')} className={`inline-flex items-center px-4 py-3 border text-black rounded w-full ${selected === 'dashboard' ? 'bg-black text-white' : 'bg-gray-200'}`}>Horizontal</a>
+
+                                                    <a href="#" onClick={() => handleClick('dashboard')} className={`inline-flex items-center px-4 py-3 border text-black rounded w-full ${selected === 'dashboard' ? 'bg-black text-white' : 'bg-gray-200'}`}> <div className={`border flex items-center justify-between px-[2px] h-6 w-10 rounded-[2px] me-2 ${selected === 'dashboard' ? 'border-white' : 'border-black'}`}>
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person" viewBox="0 0 16 16">
+                                                            <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6m2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0m4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4m-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10s-3.516.68-4.168 1.332c-.678.678-.83 1.418-.832 1.664z" />
+                                                        </svg>
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-border-width" viewBox="0 0 16 16">
+                                                            <path d="M0 3.5A.5.5 0 0 1 .5 3h15a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5H.5a.5.5 0 0 1-.5-.5zm0 5A.5.5 0 0 1 .5 8h15a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5H.5a.5.5 0 0 1-.5-.5zm0 4a.5.5 0 0 1 .5-.5h15a.5.5 0 0 1 0 1H.5a.5.5 0 0 1-.5-.5" />
+                                                        </svg>
+                                                    </div>Horizontal</a>
                                                 </li>
                                             </ul>
                                         </div>
