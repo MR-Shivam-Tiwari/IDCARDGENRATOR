@@ -37,6 +37,8 @@ const ParticipantForm = () => {
         };
     };
 
+
+
     const handleClick = (type) => {
         setSelectedIdCardType(type); // Update selected ID card type
     };

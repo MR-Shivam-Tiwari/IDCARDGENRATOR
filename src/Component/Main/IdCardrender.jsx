@@ -18,28 +18,29 @@ function IdCardrender({ Dataid, handleDownload }) {
         <div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full container mx-auto px-4">
                 {reversedData.map((card, index) => (
-                    <div key={index} className="relative">
+                    <div key={index} className="relative p-4">
                         <div
                             id={`id-card-${index}`}
-                            className={`relative p-4 border shadow-md rounded-[1px] ${card.idCardType === 'vertical' ? 'h-[370px] w-[270px]' : 'h-[270px] w-[450px]'}`}
+                            className="relative p-4 border rounded-[1px] h-[600px] w-full"
                             style={{
                                 backgroundImage: `url(${card.backgroundImage})`,
                                 backgroundSize: 'cover',
                                 backgroundPosition: 'center',
                             }}
                         >
-                            <div className="absolute inset-0 bg-black opacity-40 rounded-[3px]"></div>
-                            <div className={`relative z-10 ${card.idCardType === 'vertical' ? 'flex flex-col items-center mt-10' : 'flex items-center justify-between'} h-full text-white`}>
-                                <div className={`rounded-full overflow-hidden border-4 border-white ${card.idCardType === 'vertical' ? 'w-[130px] h-[130px]' : 'w-[130px] h-[130px] ml-5'}`}>
+
+                            <div className={`relative z-10 flex justify-center h-full text-white`}>
+                                <div className={`overflow-hidden flex-col justify-center mt-[190px] border-white`}>
+                                    <h2 className="text-lg text-center mb-2 font-bold">
+                                        {card.firstName} {card.lastName}
+                                    </h2>
                                     <img
                                         src={card.profilePicture}
+                                        style={{objectFit:'cover'}}
                                         alt="Profile"
-                                        className="w-full h-full object-cover"
+                                        className=" h-[170px] w-[170px] "
                                     />
-                                </div>
-                                <div className={`${card.idCardType === 'vertical' ? 'text-center mt-10' : 'flex-1 ml-10 mt-10'}`}>
-                                    <h2 className="text-lg font-bold">{card.firstName} {card.lastName}</h2>
-                                    <p className="text-sm">{card.designation}</p>
+                                    <p className="text-md font-semibold mt-2 text-center">{card.designation}</p>
                                 </div>
                             </div>
                         </div>

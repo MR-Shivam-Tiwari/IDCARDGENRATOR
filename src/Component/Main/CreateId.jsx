@@ -244,7 +244,7 @@ function CreateId() {
                                                     />
                                                 </div>
                                             </div>
-                                            <div>
+                                            {/* <div>
                                                 <label htmlFor="idCardType" className="block text-sm font-medium text-gray-700">
                                                     Select ID Card Type
                                                 </label>
@@ -286,7 +286,7 @@ function CreateId() {
                                                         </li>
                                                     </ul>
                                                 </div>
-                                            </div>
+                                            </div> */}
                                             <div>
                                                 <label
                                                     htmlFor="backgroundImage"
@@ -323,7 +323,7 @@ function CreateId() {
                                                     />
                                                 </div>
                                             </div>
-                                            <div className="flex justify-end">
+                                            <div className="flex justify-end gap-5">
                                                 <button
                                                     type="button"
                                                     className="inline-flex justify-center px-4 py-2 text-sm font-medium text-white bg-gray-400 border border-transparent rounded-md hover:bg-gray-500 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
@@ -333,7 +333,7 @@ function CreateId() {
                                                 </button>
                                                 <button
                                                     type="submit"
-                                                    className="ml-2 inline-flex justify-center px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
+                                                    className="ml-2 inline-flex  bg-black justify-center px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
                                                 >
                                                     Create
                                                 </button>
@@ -347,7 +347,7 @@ function CreateId() {
                 </div>
             )}
             <div className="flex justify-center  my-8">
-                <div className=" grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full container mx-auto px-4">
+                {/* <div className=" grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full container mx-auto px-4">
                     {idCard.map((card, index) => (
                         <div key={index} className="relative p-4">
                             <div
@@ -384,7 +384,45 @@ function CreateId() {
                         </div>
                     ))}
 
+                </div> */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full container mx-auto px-4">
+                    {idCard.map((card, index) => (
+                        <div key={index} className="relative p-4">
+                            <div
+                                id={`id-card-${index}`}
+                                className="relative p-4 border rounded-[1px] h-[600px] w-full"
+                                style={{
+                                    backgroundImage: `url(${card.backgroundImage})`,
+                                    backgroundSize: 'cover',
+                                    backgroundPosition: 'center',
+                                }}
+                            >
+
+                                <div className={`relative z-10 flex justify-center h-full text-white`}>
+                                    <div className={`overflow-hidden flex-col justify-center mt-[190px] border-white`}>
+                                        <h2 className="text-lg text-center mb-2 font-bold">
+                                            {card.firstName} {card.lastName}
+                                        </h2>
+                                        <img
+                                            src={card.profilePicture}
+                                            alt="Profile"
+                                            className="w-[170px] h-[170px] object-cover"
+                                        />
+                                        <p className="text-md font-semibold mt-2 text-center">{card.designation}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <button
+                                id={`download-button-${index}`}
+                                onClick={() => handleDownload(index)}
+                                className="mt-2 bg-blue-500 text-white px-2 py-1 rounded"
+                            >
+                                Download
+                            </button>
+                        </div>
+                    ))}
                 </div>
+
             </div>
 
             <hr />
