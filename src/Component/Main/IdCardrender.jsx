@@ -26,6 +26,8 @@ function IdCardrender({ Dataid, handleDownload }) {
                                 backgroundImage: `url(${card.backgroundImage})`,
                                 backgroundSize: 'cover',
                                 backgroundPosition: 'center',
+                                backgroundRepeat: 'no-repeat', // Ensure no repeat of background image
+                                imageRendering: 'crisp-edges', // Use this for better rendering in some cases
                             }}
                         >
 
@@ -36,11 +38,15 @@ function IdCardrender({ Dataid, handleDownload }) {
                                     </h2>
                                     <img
                                         src={card.profilePicture}
-                                        style={{objectFit:'cover'}}
+                                        style={{ objectFit: 'cover' }}
                                         alt="Profile"
-                                        className=" h-[170px] w-[170px] "
+                                        className=" h-[170px]  "
                                     />
-                                    <p className="text-md font-semibold mt-2 text-center">{card.designation}</p>
+                                    <p className="text-md font-semibold mt-2 text-center">{card.institute}</p>
+                                    <p className="text-md font-semibold mt-10 text-black font-semibold text-center">{card.designation}</p>
+                                    <div className='text-black mt-10 text-center font-bold'>
+                                        {card.participantId}
+                                    </div>
                                 </div>
                             </div>
                         </div>

@@ -5,6 +5,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 function CreateId() {
+    const location = useLocation();
     const [modal, setModal] = useState(false);
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
@@ -13,25 +14,28 @@ function CreateId() {
     const [backgroundImage, setBackgroundImage] = useState('');
     const [profilePicture, setProfilePicture] = useState('');
     const [Dataid, setDataid] = useState("")
-    const [eventId, setEventId] = useState('');
+    const [params, setparams] = useState(new URLSearchParams(location.search))
+    const [eventId, setEventId] = useState(params.get('eventid'));
     const [eventName, setEventName] = useState('');
+    const [institute, setInstitute] = useState('');
     const [selectedIdCardType, setSelectedIdCardType] = useState('vertical');
+
 
     const handleClick = (type) => {
         setSelectedIdCardType(type);
     };
-    const location = useLocation();
 
     useEffect(() => {
         const params = new URLSearchParams(location.search);
         const id = params.get('eventid');
         const name = params.get('eventName');
+        setparams(params)
         setEventId(id);
         setEventName(name);
 
-        if (id) {
-            fetchData(id);
-        }
+
+        fetchData();
+
     }, [location]);
 
     const handleImageChange = async (event) => {
@@ -46,7 +50,7 @@ function CreateId() {
             }
         };
     };
-    const fetchData = async (eventId) => {
+    const fetchData = async () => {
         try {
             const url = `http://localhost:5000/api/participants/event/${eventId}`;
             const response = await axios.get(url);
@@ -65,17 +69,34 @@ function CreateId() {
     }, []);
 
     console.log("sjdjdhs", Dataid)
+    // Function to generate a random alphanumeric ID
+    // function generateParticipantId() {
+    //     const length = 5;
+    //     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    //     let result = '';
+    //     for (let i = 0; i < length; i++) {
+    //         result += characters.charAt(Math.floor(Math.random() * characters.length));
+    //     }
+    //     return result;
+    // }
+
 
     const handleSubmit = async (event) => {
         event.preventDefault();
+
+        // Generate participantId
+        // const participantId = generateParticipantId();
+
         try {
             const response = await axios.post('http://localhost:5000/api/participants', {
+                // participantId, // Include the generated participantId in the request
                 firstName,
                 lastName,
                 designation,
                 idCardType: selectedIdCardType,
                 backgroundImage,
                 profilePicture,
+                institute,
                 eventId,
                 eventName
             });
@@ -88,19 +109,47 @@ function CreateId() {
         }
     };
 
+
+
     const handleDownload = (index) => {
         const idCardElement = document.getElementById(`id-card-${index}`);
         const downloadButton = document.getElementById(`download-button-${index}`);
         downloadButton.style.display = 'none';
 
-        html2canvas(idCardElement, { scale: 2 }).then((canvas) => {
+        html2canvas(idCardElement, {
+            scale: 10, // Significantly increased scale for maximum quality
+            useCORS: true,
+            logging: false,
+            allowTaint: true
+        }).then((canvas) => {
             const link = document.createElement('a');
-            link.href = canvas.toDataURL('image/png');
+            link.href = canvas.toDataURL('image/png', 1.0); // Set quality to maximum
             link.download = 'id-card.png';
             link.click();
             downloadButton.style.display = 'block';
         });
     };
+    const [designations, setDesignations] = useState([]); // State to hold fetched designations
+    const [selectedDesignation, setSelectedDesignation] = useState('');
+    const [loading, setLoading] = useState(true);
+
+    // Function to fetch designations from API
+    const fetchDesignations = async (eventId) => {
+        try {
+            const response = await axios.get(`http://localhost:5000/api/events`);
+            const filteredDesignations = response.data.filter(categories => categories._id === eventId);
+            setDesignations(filteredDesignations);
+        } catch (error) {
+            console.error('Error fetching designations:', error);
+        }
+    };
+    console.log("categories", designations)
+
+    useEffect(() => {
+        fetchDesignations(eventId); // Pass the eventid you want to filter by
+    }, [eventId]);
+
+
 
     const navigate = useNavigate();
 
@@ -226,23 +275,48 @@ function CreateId() {
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div>
-                                                <label
-                                                    htmlFor="designation"
-                                                    className="block text-sm font-medium text-gray-700"
-                                                >
-                                                    Designation
-                                                </label>
-                                                <div className="mt-1">
-                                                    <input
-                                                        className="flex h-10 w-[100%] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                                        id="designation"
-                                                        placeholder="Enter your Designation"
-                                                        required
-                                                        value={designation}
-                                                        onChange={(e) => setDesignation(e.target.value)}
-                                                    />
+                                            <div className='grid-cols-2 grid  gap-6'>
+                                                <div className="mt-4">
+                                                    <label htmlFor="institute" className="block text-sm font-medium text-gray-700">
+                                                        Institute
+                                                    </label>
+                                                    <div className="mt-1">
+                                                        <input
+                                                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                                            id="institute"
+                                                            placeholder="Enter your Institute"
+                                                            required
+                                                            value={institute}
+                                                            onChange={(e) => setInstitute(e.target.value)}
+                                                        />
+                                                    </div>
                                                 </div>
+                                                <div className="mt-4">
+                                                    <label htmlFor="designation" className="block text-sm font-medium text-gray-700">
+                                                        Designation
+                                                    </label>
+                                                    <div className="mt-1">
+                                                        <select
+                                                            className="flex h-10 w-[100%] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                                            id="designation"
+                                                            placeholder="Enter your Designation"
+                                                            required
+                                                            value={designation}
+                                                            onChange={(e) => setDesignation(e.target.value)}
+                                                        >
+                                                            <option value="">Select Designation</option>
+                                                            {designations.map((designation) =>
+                                                                designation.categories.map((category, index) => (
+                                                                    <option key={index} value={category}>
+                                                                        {category}
+                                                                    </option>
+                                                                ))
+                                                            )}
+                                                        </select>
+
+                                                    </div>
+                                                </div>
+
                                             </div>
                                             {/* <div>
                                                 <label htmlFor="idCardType" className="block text-sm font-medium text-gray-700">
@@ -395,9 +469,10 @@ function CreateId() {
                                     backgroundImage: `url(${card.backgroundImage})`,
                                     backgroundSize: 'cover',
                                     backgroundPosition: 'center',
+                                    backgroundRepeat: 'no-repeat', // Ensure no repeat of background image
+                                    imageRendering: 'crisp-edges', // Use this for better rendering in some cases
                                 }}
                             >
-
                                 <div className={`relative z-10 flex justify-center h-full text-white`}>
                                     <div className={`overflow-hidden flex-col justify-center mt-[190px] border-white`}>
                                         <h2 className="text-lg text-center mb-2 font-bold">
@@ -408,7 +483,11 @@ function CreateId() {
                                             alt="Profile"
                                             className="w-[170px] h-[170px] object-cover"
                                         />
-                                        <p className="text-md font-semibold mt-2 text-center">{card.designation}</p>
+                                        <p className="text-md font-semibold mt-2 text-center">{card.institute}</p>
+                                        <p className="text-md font-semibold mt-10 text-black font-semibold text-center">{card.designation}</p>
+                                        <div className='text-black mt-10 text-center font-bold'>
+                                            {card.participantId}
+                                        </div>
                                     </div>
                                 </div>
                             </div>

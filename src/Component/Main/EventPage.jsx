@@ -8,18 +8,34 @@ function EventPage() {
     const toggleModal = () => {
         setShowModal(!showModal);
     };
+    const [inputs, setInputs] = useState([]);
+    const [currentInput, setCurrentInput] = useState('');
+
+    const addCategory = () => {
+        if (currentCategory.trim()) {
+            setCategories([...categories, currentCategory.trim()]);
+            setCurrentCategory('');
+        }
+    };
+
+    const removeCategory = (index) => {
+        const newCategories = categories.filter((_, i) => i !== index);
+        setCategories(newCategories);
+    };
+
     const [eventName, setEventName] = useState('');
     const [address, setAddress] = useState('');
     const [date, setDate] = useState('');
     const [photo, setPhoto] = useState(null); // State to hold base64 encoded image
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [categories, setCategories] = useState([]);
+    const [currentCategory, setCurrentCategory] = useState('');
     const handleFileChange = async (e) => {
         const file = e.target.files[0];
         const base64 = await convertBase64(file);
         setPhoto(base64);
     };
-
     const convertBase64 = (file) => {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -31,26 +47,23 @@ function EventPage() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setLoading(true);
 
         try {
             const eventData = {
                 eventName,
                 address,
                 date,
-                photo // This should now be the base64 string
+                photo,
+                categories // Include categories array
             };
 
             const response = await axios.post('http://localhost:5000/api/events', eventData);
 
             console.log('Event created:', response.data);
-            setLoading(false);
             toggleModal();
             fetchEvents();
-            // Optionally, you can navigate or update state here after successful creation
         } catch (error) {
             console.error('Error creating event:', error);
-            setLoading(false);
         }
     };
     const fetchEvents = async () => {
@@ -63,6 +76,7 @@ function EventPage() {
             setLoading(false);
         }
     };
+    console.log("Events", events)
 
     useEffect(() => {
         fetchEvents();
@@ -163,6 +177,7 @@ function EventPage() {
                                                     />
                                                 </div>
                                             </div>
+
                                             <div>
                                                 <label
                                                     htmlFor="address"
@@ -182,6 +197,46 @@ function EventPage() {
                                                     />
                                                 </div>
                                             </div>
+                                        </div>
+                                        <div className="">
+                                            <label htmlFor="Category" className="block mb-1 text-sm font-medium text-gray-700">
+                                                Category
+                                            </label>
+                                            <div className="flex items-center space-x-4">
+                                                <input
+                                                    type="text"
+                                                    value={currentCategory}
+                                                    onChange={(e) => setCurrentCategory(e.target.value)}
+                                                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                    placeholder="Add Category"
+                                                />
+                                                <button
+                                                    onClick={addCategory}
+                                                    className="px-4 w-20 bg-black h-8 text-white rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                >
+                                                    Add
+                                                </button>
+                                            </div>
+                                            <div className="mt-4">
+                                                {categories.length > 0 && (
+                                                    <ul className="list-disc list-inside space-y-2">
+                                                        {categories.map((category, index) => (
+                                                            <li key={index} className="flex items-center justify-between text-gray-700">
+                                                                <span>{category}</span>
+                                                                <button
+                                                                    onClick={() => removeCategory(index)}
+                                                                    className="px-2 py-1 bg-red-500 text-white rounded-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
+                                                                >
+                                                                    Remove
+                                                                </button>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <div className='grid grid-cols-1 sm:grid-cols-2 gap-6'>
+
                                             <div>
                                                 <label
                                                     htmlFor="date"
@@ -220,21 +275,23 @@ function EventPage() {
                                                 </div>
                                             </div>
                                         </div>
-                                            <div className="flex items-center justify-between px-10">
-                                                <button
-                                                    type="button"
-                                                    onClick={toggleModal}
-                                                    className="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium bg-gray-200 text-gray-800 transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-9 rounded-md px-3"
-                                                >
-                                                    Cancel
-                                                </button>
-                                                <button
-                                                    type="submit"
-                                                    className="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium bg-black text-white transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-9 rounded-md px-3"
-                                                >
-                                                    {loading ? 'Creating...' : 'Create Event'}
-                                                </button>
-                                            </div>
+
+                                        <div className="flex items-center justify-between px-10">
+                                            <button
+                                                type="button"
+                                                onClick={toggleModal}
+                                                className="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium bg-gray-200 text-gray-800 transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-9 rounded-md px-3"
+                                            >
+                                                Cancel
+                                            </button>
+                                            <button
+                                                type="submit"
+
+                                                className="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium bg-black text-white transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-9 rounded-md px-3"
+                                            >
+                                                {loading ? 'Creating...' : 'Create Event'}
+                                            </button>
+                                        </div>
                                     </form>
                                 </div>
                             </div>
