@@ -4,7 +4,7 @@ import IdCardrender from "./IdCardrender";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
-import Swal from "sweetalert2";
+import { toPng } from 'html-to-image';
 import JsBarcode from "jsbarcode";
 function CreateId() {
   const location = useLocation();
@@ -102,23 +102,20 @@ function CreateId() {
     }
   };
 
+  
   const handleDownload = (index) => {
     const idCardElement = document.getElementById(`id-card-${index}`);
     const downloadButton = document.getElementById(`download-button-${index}`);
     downloadButton.style.display = "none";
-
-    html2canvas(idCardElement, {
-      scale: 10, // Significantly increased scale for maximum quality
-      useCORS: true,
-      logging: false,
-      allowTaint: true,
-    }).then((canvas) => {
-      const link = document.createElement("a");
-      link.href = canvas.toDataURL("image/png", 1.0); // Set quality to maximum
-      link.download = "id-card.png";
-      link.click();
-      downloadButton.style.display = "block";
-    });
+  
+    toPng(idCardElement, { quality: 1, pixelRatio: 4 }) // Increased pixelRatio for better quality
+      .then((dataUrl) => {
+        const link = document.createElement('a');
+        link.href = dataUrl;
+        link.download = 'id-card.png';
+        link.click();
+        downloadButton.style.display = "block";
+      });
   };
   const [designations, setDesignations] = useState([]); // State to hold fetched designations
   const barcodeRef = useRef(null);
