@@ -1,50 +1,80 @@
-import axios from 'axios';
-import React, { useEffect, useState } from 'react'
+import axios from "axios";
+import React, { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 function ArchiveEvent() {
-    const [events, setEvents] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const fetchEvents = async () => {
-        try {
-          const response = await axios.get("http://localhost:5000/api/events/archiveevent");
-          setEvents(response.data);
-          setLoading(false);
-        } catch (error) {
-          console.error("Error fetching events:", error);
-          setLoading(false);
-        }
-      };
-      useEffect(() => {
-        fetchEvents();
-      }, []);
-      const handleDelete = (id) => {
-        Swal.fire({
-          title: "Archive Event?",
-          text: "This will archive the event and it won't be deleted permanently.",
-          icon: "warning",
-          showCancelButton: true,
-          confirmButtonColor: "#3085d6",
-          cancelButtonColor: "#d33",
-          confirmButtonText: "Yes, archive it!",
-        }).then((result) => {
-          if (result.isConfirmed) {
-            axios
-              .patch(`http://localhost:5000/api/events/archive/${id}`, {
-                archive: false
-              })
-              .then((res) => {
-                Swal.fire("Archived!", "Event has been archived.", "success");
-                fetchEvents(); // Assuming fetchEvents is a function to fetch updated events list
-              })
-              .catch((error) => {
-                console.log(error);
-              });
-          }
-        });
-    };
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const fetchEvents = async () => {
+    try {
+      const response = await axios.get(
+        "http://localhost:5000/api/events/archiveevent"
+      );
+      setEvents(response.data);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching events:", error);
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
+    fetchEvents();
+  }, []);
+  const handleDelete = (id) => {
+    Swal.fire({
+      title: "Archive Event?",
+      text: "This will archive the event and it won't be deleted permanently.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, archive it!",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        axios
+          .patch(`http://localhost:5000/api/events/archive/${id}`, {
+            archive: false,
+          })
+          .then((res) => {
+            Swal.fire("Archived!", "Event has been archived.", "success");
+            fetchEvents(); // Assuming fetchEvents is a function to fetch updated events list
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      }
+    });
+  };
   return (
     <div>
-        <div className="container mx-auto px-4 py-8">
+      <header className="sticky top-0 z-50 w-full bg-gray-200 shadow-sm">
+        <div className="flex h-16 mx-auto items-center justify-between px-4 lg:px-[80px]">
+          <a className="flex items-center gap-2" href="#" rel="ugc">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="h-6 w-6"
+            >
+              <path d="M8 2v4"></path>
+              <path d="M16 2v4"></path>
+              <rect width="18" height="18" x="3" y="4" rx="2"></rect>
+              <path d="M3 10h18"></path>
+            </svg>
+            <span className="font-bold tracking-tight">
+              Event ID Card Generator App
+            </span>
+          </a>
+          
+       
+        </div>
+      </header>
+      <div className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-4">Events</h1>
 
         {loading ? (
@@ -83,7 +113,6 @@ function ArchiveEvent() {
                           IDCARD - {event.participantCount}
                         </button>
                         <div className="flex gap-3">
-                         
                           <button
                             onClick={() => handleDelete(event._id)}
                             className="bg-gray-600 text-white px-5 p-2 rounded font-bold hover:bg-blue-700 "
@@ -150,7 +179,7 @@ function ArchiveEvent() {
         )}
       </div>
     </div>
-  )
+  );
 }
 
-export default ArchiveEvent
+export default ArchiveEvent;

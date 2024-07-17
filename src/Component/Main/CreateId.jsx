@@ -180,7 +180,7 @@ function CreateId() {
               <rect width="18" height="18" x="3" y="4" rx="2"></rect>
               <path d="M3 10h18"></path>
             </svg>
-            <span className="font-bold tracking-tight">Event App</span>
+            <span className="font-bold tracking-tight">Event ID Card Generator App</span>
           </a>
           <div className="flex gap-10">
             <button
