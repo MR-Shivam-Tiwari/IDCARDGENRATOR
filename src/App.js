@@ -5,13 +5,15 @@ import EventPage from './Component/Main/EventPage';
 import CreateId from './Component/Main/CreateId';
 import BulkCreateID from './Component/Main/BulkCreateID';
 import DataCheck from './Component/Main/DataCheck';
-
-
+import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer } from 'react-toastify';
+import ArchiveEvent from './Component/Main/Archive/ArchiveEvent';
 
 
 function App() {
   return (
     <div className=" ">
+       <ToastContainer />
       <Router>
 
         <div className="flex-grow">
@@ -19,7 +21,8 @@ function App() {
             <Route path="/" element={<EventPage />} />
             <Route path="/create-id" element={<CreateId />} />
             <Route path="/bulk-create-id" element={<BulkCreateID />} />
-            <Route path="/ceck" element={<DataCheck />} />
+            <Route path="/archive-event" element={<ArchiveEvent />} />
+            {/* <Route path="/ceck" element={<DataCheck />} /> */}
            
 
 
