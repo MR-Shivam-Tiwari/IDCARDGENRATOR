@@ -145,7 +145,7 @@ function EventPage() {
     <div>
       <header className="sticky top-0 z-50 w-full bg-gray-200 shadow-sm">
         <div className="flex h-16 mx-auto items-center justify-between px-4 lg:px-[80px]">
-          <a className="flex items-center gap-2" href="#" rel="ugc">
+          <a className="flex items-center gap-2" href="/" rel="ugc">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="24"

@@ -159,7 +159,7 @@ function CreateId() {
     <div>
       <header className="sticky top-0 z-50 w-full bg-gray-200 shadow-sm">
         <div className="flex h-16 mx-auto items-center justify-between px-4 lg:px-[80px]">
-          <a className="flex items-center gap-2" href="#" rel="ugc">
+          <a className="flex items-center gap-2" href="/" rel="ugc">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="24"
@@ -186,12 +186,12 @@ function CreateId() {
             >
               Create ID
             </button>
-            <button
+            {/* <button
               onClick={() => navigate("/bulk-create-id")}
               className="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium bg-black text-white transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-9 rounded-md px-3"
             >
               Bulk Create
-            </button>
+            </button> */}
           </div>
         </div>
       </header>
