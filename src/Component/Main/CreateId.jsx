@@ -14,18 +14,30 @@ function CreateId() {
   const [lastName, setLastName] = useState("");
   const [designation, setDesignation] = useState("");
   const [idCard, setIdCard] = useState([]);
-  const [backgroundImage, setBackgroundImage] = useState("");
-  const [profilePicture, setProfilePicture] = useState("");
+ 
   const [Dataid, setDataid] = useState("");
   const [params, setparams] = useState(new URLSearchParams(location.search));
   const [eventId, setEventId] = useState(params.get("eventid"));
   const [eventName, setEventName] = useState("");
   const [institute, setInstitute] = useState("");
   const [selectedIdCardType, setSelectedIdCardType] = useState("vertical");
+  
+  const [backgroundImage, setBackgroundImage] = useState(null);
+  const [profilePicture, setProfilePicture] = useState(null);
+  
+  const handleImageChange = (event) => {
+    const { id, files } = event.target;
+    if (files && files[0]) {
+        const file = files[0];
+        if (id === 'backgroundImage') {
+            setBackgroundImage(file);
+        } else if (id === 'profilePicture') {
+            setProfilePicture(file);
+        }
+    }
+};
 
-  const handleClick = (type) => {
-    setSelectedIdCardType(type);
-  };
+  
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -38,21 +50,10 @@ function CreateId() {
     fetchData();
   }, [location]);
 
-  const handleImageChange = async (event) => {
-    const file = event.target.files[0];
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onloadend = () => {
-      if (event.target.name === "backgroundImage") {
-        setBackgroundImage(reader.result);
-      } else if (event.target.name === "profilePicture") {
-        setProfilePicture(reader.result);
-      }
-    };
-  };
+
   const fetchData = async () => {
     try {
-      const url = `http://65.0.132.17:5000/api/participants/event/${eventId}`;
+      const url = `https://kdemapi.insideoutprojects.in/api/participants/event/${eventId}`;
       const response = await axios.get(url);
       console.log("Participants by EventId:", response.data); // Log fetched participants
       setDataid(response.data); // Update state with fetched data
@@ -73,50 +74,71 @@ function CreateId() {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    // Generate participantId
-    // const participantId = generateParticipantId();
-
     try {
-      const response = await axios.post(
-        "http://65.0.132.17:5000/api/participants",
-        {
-          // participantId, // Include the generated participantId in the request
-          firstName,
-          lastName,
-          designation,
-          idCardType: selectedIdCardType,
-          backgroundImage,
-          profilePicture,
-          institute,
-          eventId,
-          eventName,
+        const formData = new FormData();
+        
+        // Append non-file data
+        formData.append('firstName', firstName);
+        formData.append('lastName', lastName);
+        formData.append('designation', designation);
+        formData.append('idCardType', selectedIdCardType);
+        formData.append('institute', institute);
+        formData.append('eventId', eventId);
+        formData.append('eventName', eventName);
+        
+        // Append file data
+        if (backgroundImage) {
+            formData.append('backgroundImage', backgroundImage);
         }
-      );
+        if (profilePicture) {
+            formData.append('profilePicture', profilePicture);
+        }
 
-      setIdCard([...idCard, response.data]); // Update state with new ID card
-      fetchData(eventId);
-      toggleModal();
-      toast.success("ID CARD created successfully!", "Success");
+        const response = await axios.post(
+            "https://kdemapi.insideoutprojects.in/api/participants",
+            formData,
+            {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            }
+        );
+
+        setIdCard([...idCard, response.data]); // Update state with new ID card
+        fetchData(eventId);
+        toggleModal();
+        toast.success("ID CARD created successfully!", "Success");
     } catch (error) {
-      console.error("Error creating participant:", error);
+        console.error("Error creating participant:", error);
     }
-  };
+};
+
 
   
-  const handleDownload = (index) => {
-    const idCardElement = document.getElementById(`id-card-${index}`);
-    const downloadButton = document.getElementById(`download-button-${index}`);
-    downloadButton.style.display = "none";
-  
-    toPng(idCardElement, { quality: 1, pixelRatio: 4 }) // Increased pixelRatio for better quality
-      .then((dataUrl) => {
-        const link = document.createElement('a');
-        link.href = dataUrl;
-        link.download = 'id-card.png';
-        link.click();
-        downloadButton.style.display = "block";
-      });
-  };
+const handleDownload = async (index) => {
+  const idCardElement = document.getElementById(`id-card-${index}`);
+  const downloadButton = document.getElementById(`download-button-${index}`);
+
+  if (!idCardElement || !downloadButton) {
+    console.error('Element not found');
+    return;
+  }
+
+  downloadButton.style.display = "none";
+
+  try {
+    const dataUrl = await toPng(idCardElement, { quality: 1, pixelRatio: 4 });
+    const link = document.createElement('a');
+    link.href = dataUrl;
+    link.download = 'id-card.png';
+    link.click();
+  } catch (error) {
+    console.error('Error generating PNG:', error);
+  } finally {
+    downloadButton.style.display = "block";
+  }
+};
+
   const [designations, setDesignations] = useState([]); // State to hold fetched designations
   const barcodeRef = useRef(null);
 
@@ -133,7 +155,7 @@ function CreateId() {
   // Function to fetch designations from API
   const fetchDesignations = async (eventId) => {
     try {
-      const response = await axios.get(`http://65.0.132.17:5000/api/events`);
+      const response = await axios.get(`https://kdemapi.insideoutprojects.in/api/events`);
       const filteredDesignations = response.data.filter(
         (categories) => categories._id === eventId
       );
@@ -154,7 +176,9 @@ function CreateId() {
     setModal(!modal);
   };
 
-
+  const handleNavigate = () => {
+    navigate(`/bulk-create-id?eventid=${eventId}&eventName=${eventName}`);
+  };
   return (
     <div>
       <header className="sticky top-0 z-50 w-full bg-gray-200 shadow-sm">
@@ -187,7 +211,7 @@ function CreateId() {
               Create ID
             </button>
             <button
-              onClick={() => navigate("/bulk-create-id")}
+              onClick={handleNavigate}
               className="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium bg-black text-white transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-9 rounded-md px-3"
             >
               Bulk Create

@@ -47,7 +47,7 @@ const ParticipantForm = () => {
         event.preventDefault();
         try {
             // Convert base64 images to strings and send in the request
-            const response = await axios.post('http://65.0.132.17:5000/api/participants', {
+            const response = await axios.post('https://kdemapi.insideoutprojects.in/api/participants', {
                 firstName,
                 lastName,
                 designation,

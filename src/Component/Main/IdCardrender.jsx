@@ -2,9 +2,9 @@ import React, { useRef, useEffect } from "react";
 import JsBarcode from "jsbarcode";
 import Swal from "sweetalert2";
 import toastr from "sweetalert2";
-import { toast } from 'react-toastify';
+import { toast } from "react-toastify";
 import axios from "axios";
-function IdCardrender({ Dataid, handleDownload ,fetchData }) {
+function IdCardrender({ Dataid, handleDownload, fetchData }) {
   // Check if Dataid is an array and is empty
   if (!Array.isArray(Dataid) || Dataid.length === 0) {
     // Display a message when Dataid is empty
@@ -37,7 +37,7 @@ function IdCardrender({ Dataid, handleDownload ,fetchData }) {
   );
 }
 
-const IdCard = ({ card, handleDownload, index ,fetchData }) => {
+const IdCard = ({ card, handleDownload, index, fetchData }) => {
   const barcodeRef = useRef(null);
 
   useEffect(() => {
@@ -52,29 +52,30 @@ const IdCard = ({ card, handleDownload, index ,fetchData }) => {
 
   const handleDelete = (id) => {
     Swal.fire({
-        title: "Archive ID Cards?",
-        text: "This will archive the ID Cards and can be reverted later.",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#3085d6",
-        cancelButtonColor: "#d33",
-        confirmButtonText: "Yes, archive it!",
+      title: "Archive ID Cards?",
+      text: "This will archive the ID Cards and can be reverted later.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, archive it!",
     }).then((result) => {
-        if (result.isConfirmed) {
-            axios
-                .patch(`http://65.0.132.17:5000/api/participants/archive/${id}`, { archive: true }) // PATCH request to archive participant
-                .then((res) => {
-                    Swal.fire("Archived!", "ID Cards has been archived.", "success");
-                    fetchData(); // Assuming fetchData() fetches updated participant list
-                    console.log("archived");
-                })
-                .catch((error) => {
-                    console.log(error);
-                });
-        }
+      if (result.isConfirmed) {
+        axios
+          .patch(`https://kdemapi.insideoutprojects.in/api/participants/archive/${id}`, {
+            archive: true,
+          }) // PATCH request to archive participant
+          .then((res) => {
+            Swal.fire("Archived!", "ID Cards has been archived.", "success");
+            fetchData(); // Assuming fetchData() fetches updated participant list
+            console.log("archived");
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      }
     });
-};
-
+  };
 
   return (
     <div className="relative p-4">
@@ -120,8 +121,10 @@ const IdCard = ({ card, handleDownload, index ,fetchData }) => {
         </div>
       </div>
       <div className="flex gap-4 mt-3 justify-end">
-        
-        <button  onClick={() => handleDelete(card._id)} className="border text-black  p-3 bg-gray-300 rounded-full hover:bg-gray-400">
+        <button
+          onClick={() => handleDelete(card._id)}
+          className="border text-black  p-3 bg-gray-300 rounded-full hover:bg-gray-400"
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="20"
