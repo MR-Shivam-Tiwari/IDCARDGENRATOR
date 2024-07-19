@@ -62,7 +62,7 @@ const IdCard = ({ card, handleDownload, index ,fetchData }) => {
     }).then((result) => {
         if (result.isConfirmed) {
             axios
-                .patch(`http://localhost:5000/api/participants/archive/${id}`, { archive: true }) // PATCH request to archive participant
+                .patch(`http://65.0.132.17:5000/api/participants/archive/${id}`, { archive: true }) // PATCH request to archive participant
                 .then((res) => {
                     Swal.fire("Archived!", "ID Cards has been archived.", "success");
                     fetchData(); // Assuming fetchData() fetches updated participant list

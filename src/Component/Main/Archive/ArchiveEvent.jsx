@@ -7,7 +7,7 @@ function ArchiveEvent() {
   const fetchEvents = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:5000/api/events/archiveevent"
+        "http://65.0.132.17:5000/api/events/archiveevent"
       );
       setEvents(response.data);
       setLoading(false);
@@ -31,7 +31,7 @@ function ArchiveEvent() {
     }).then((result) => {
       if (result.isConfirmed) {
         axios
-          .patch(`http://localhost:5000/api/events/archive/${id}`, {
+          .patch(`http://65.0.132.17:5000/api/events/archive/${id}`, {
             archive: false,
           })
           .then((res) => {

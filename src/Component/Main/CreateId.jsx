@@ -52,7 +52,7 @@ function CreateId() {
   };
   const fetchData = async () => {
     try {
-      const url = `http://localhost:5000/api/participants/event/${eventId}`;
+      const url = `http://65.0.132.17:5000/api/participants/event/${eventId}`;
       const response = await axios.get(url);
       console.log("Participants by EventId:", response.data); // Log fetched participants
       setDataid(response.data); // Update state with fetched data
@@ -78,7 +78,7 @@ function CreateId() {
 
     try {
       const response = await axios.post(
-        "http://localhost:5000/api/participants",
+        "http://65.0.132.17:5000/api/participants",
         {
           // participantId, // Include the generated participantId in the request
           firstName,
@@ -133,7 +133,7 @@ function CreateId() {
   // Function to fetch designations from API
   const fetchDesignations = async (eventId) => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/events`);
+      const response = await axios.get(`http://65.0.132.17:5000/api/events`);
       const filteredDesignations = response.data.filter(
         (categories) => categories._id === eventId
       );
@@ -186,12 +186,12 @@ function CreateId() {
             >
               Create ID
             </button>
-            {/* <button
+            <button
               onClick={() => navigate("/bulk-create-id")}
               className="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium bg-black text-white transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-9 rounded-md px-3"
             >
               Bulk Create
-            </button> */}
+            </button>
           </div>
         </div>
       </header>

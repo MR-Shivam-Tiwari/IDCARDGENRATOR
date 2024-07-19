@@ -8,6 +8,7 @@ import DataCheck from './Component/Main/DataCheck';
 import 'react-toastify/dist/ReactToastify.css';
 import { ToastContainer } from 'react-toastify';
 import ArchiveEvent from './Component/Main/Archive/ArchiveEvent';
+import BulkUploadForm from './Component/Main/BulkUploadForm';
 
 
 function App() {
@@ -20,7 +21,7 @@ function App() {
           <Routes>
             <Route path="/" element={<EventPage />} />
             <Route path="/create-id" element={<CreateId />} />
-            <Route path="/bulk-create-id" element={<BulkCreateID />} />
+            <Route path="/bulk-create-id" element={<BulkUploadForm />} />
             <Route path="/archive-event" element={<ArchiveEvent />} />
             {/* <Route path="/ceck" element={<DataCheck />} /> */}
            

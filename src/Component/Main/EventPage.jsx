@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Swal from "sweetalert2";
 import toastr from "sweetalert2";
-import { toast } from 'react-toastify';
+import { toast } from "react-toastify";
 function EventPage() {
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
@@ -63,7 +63,7 @@ function EventPage() {
       };
 
       const response = await axios.post(
-        "http://localhost:5000/api/events",
+        "http://65.0.132.17:5000/api/events",
         eventData
       );
 
@@ -77,7 +77,7 @@ function EventPage() {
   };
   const fetchEvents = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/api/events/");
+      const response = await axios.get("http://65.0.132.17:5000/api/events/");
       setEvents(response.data);
       setLoading(false);
     } catch (error) {
@@ -89,7 +89,7 @@ function EventPage() {
 
   const fetchData = async () => {
     try {
-      const url = `http://localhost:5000/api/participants/event/${eventId}`;
+      const url = `http://65.0.132.17:5000/api/participants/event/${eventId}`;
       const response = await axios.get(url);
       console.log("Participants by EventId:", response.data); // Log fetched participants
       setDataid(response.data); // Update state with fetched data
@@ -112,7 +112,6 @@ function EventPage() {
     navigate(`/create-id?eventid=${groupId}&eventName=${groupName}`);
   };
 
-  
   const handleDelete = (id) => {
     Swal.fire({
       title: "Archive Event?",
@@ -125,8 +124,8 @@ function EventPage() {
     }).then((result) => {
       if (result.isConfirmed) {
         axios
-          .patch(`http://localhost:5000/api/events/archive/${id}`, {
-            archive: true
+          .patch(`http://65.0.132.17:5000/api/events/archive/${id}`, {
+            archive: true,
           })
           .then((res) => {
             Swal.fire("Archived!", "Event has been archived.", "success");
@@ -137,9 +136,7 @@ function EventPage() {
           });
       }
     });
-};
-
-
+  };
 
   return (
     <div>
@@ -163,7 +160,9 @@ function EventPage() {
               <rect width="18" height="18" x="3" y="4" rx="2"></rect>
               <path d="M3 10h18"></path>
             </svg>
-            <span className="font-bold tracking-tight">Event ID Card Generator App</span>
+            <span className="font-bold tracking-tight">
+              Event ID Card Generator App
+            </span>
           </a>
           <button
             onClick={toggleModal}
@@ -366,25 +365,25 @@ function EventPage() {
 
         {loading ? (
           <div className="flex justify-center items-center h-[60vh]">
-            <span class="loader"></span>
+            <span className="loader"></span>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-            {events
-              .slice()
-              .reverse()
-              .map((event) => (
-                <>
-                  <div
+            {Array.isArray(events) &&
+              events
+                .slice()
+                .reverse()
+                .map((event) => (
+                  <div      
                     key={event._id}
-                    class="relative h-64 cursor-pointer overflow-hidden rounded-lg"
+                    className="relative h-64 cursor-pointer overflow-hidden rounded-lg"
                   >
                     {event.photoUrl ? (
                       <img
                         src={`data:image/jpeg;base64,${event.photoUrl}`}
                         alt={event.eventName}
-                        className="w-full h-full object-cover"
-                        width="600"
+                        className="w-full h-full object-cover"   
+                         width="600"
                         height="400"
                         style={{ aspectRatio: "600/400", objectFit: "cover" }}
                       />
@@ -393,10 +392,9 @@ function EventPage() {
                         No Image
                       </div>
                     )}
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent p-4">
                       <div className="flex gap-4 justify-between">
-                        <button className="bg-yellow-400 text-black px-5 p-2 h-6 shadow-full flex items-center rounded font-bold  ">
-                          {" "}
+                        <button className="bg-yellow-400 text-black px-5 p-2 h-6 shadow-full flex items-center rounded font-bold">
                           IDCARD - {event.participantCount}
                         </button>
                         <div className="flex gap-3">
@@ -404,25 +402,23 @@ function EventPage() {
                             onClick={() =>
                               handleTaskView(event._id, event.eventName)
                             }
-                            className="bg-orange-600 text-white px-5 p-2 rounded font-bold hover:bg-blue-700 "
+                            className="bg-orange-600 text-white px-5 p-2 rounded font-bold hover:bg-blue-700"
                           >
-                            {" "}
                             View
                           </button>
                           <button
                             onClick={() => handleDelete(event._id)}
-                            className="bg-gray-600 text-white px-5 p-2 rounded font-bold hover:bg-blue-700 "
+                            className="bg-gray-600 text-white px-5 p-2 rounded font-bold hover:bg-blue-700"
                           >
-                            {" "}
                             Archive
                           </button>
                         </div>
                       </div>
-                      <div class="flex h-full flex-col justify-end">
-                        <h3 class="text-3xl mb-1 font-bold text-white">
+                      <div className="flex h-full flex-col justify-end">
+                        <h3 className="text-3xl mb-1 font-bold text-white">
                           {event.eventName}
                         </h3>
-                        <div class="flex items-center gap-2 mb-8 shadow-full  text-sm text-white">
+                        <div className="flex items-center gap-2 mb-8 shadow-full text-sm text-white">
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
                             width="24"
@@ -430,10 +426,10 @@ function EventPage() {
                             viewBox="0 0 24 24"
                             fill="none"
                             stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            class="h-4 w-4"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="h-4 w-4"
                           >
                             <path d="M8 2v4"></path>
                             <path d="M16 2v4"></path>
@@ -456,10 +452,10 @@ function EventPage() {
                             viewBox="0 0 24 24"
                             fill="none"
                             stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            class="h-4 w-4"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="h-4 w-4"
                           >
                             <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
                             <circle cx="12" cy="10" r="3"></circle>
@@ -469,8 +465,7 @@ function EventPage() {
                       </div>
                     </div>
                   </div>
-                </>
-              ))}
+                ))}
           </div>
         )}
       </div>
