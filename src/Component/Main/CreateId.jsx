@@ -4,7 +4,7 @@ import IdCardrender from "./IdCardrender";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { toPng } from 'html-to-image';
+import { toPng } from "html-to-image";
 import JsBarcode from "jsbarcode";
 function CreateId() {
   const location = useLocation();
@@ -14,30 +14,26 @@ function CreateId() {
   const [lastName, setLastName] = useState("");
   const [designation, setDesignation] = useState("");
   const [idCard, setIdCard] = useState([]);
- 
+  const [designations, setDesignations] = useState([]); // State to hold fetched designations
   const [Dataid, setDataid] = useState("");
   const [params, setparams] = useState(new URLSearchParams(location.search));
   const [eventId, setEventId] = useState(params.get("eventid"));
   const [eventName, setEventName] = useState("");
   const [institute, setInstitute] = useState("");
   const [selectedIdCardType, setSelectedIdCardType] = useState("vertical");
-  
+
   const [backgroundImage, setBackgroundImage] = useState(null);
   const [profilePicture, setProfilePicture] = useState(null);
-  
+
   const handleImageChange = (event) => {
     const { id, files } = event.target;
     if (files && files[0]) {
-        const file = files[0];
-        if (id === 'backgroundImage') {
-            setBackgroundImage(file);
-        } else if (id === 'profilePicture') {
-            setProfilePicture(file);
-        }
+      const file = files[0];
+      if (id === "profilePicture") {
+        setProfilePicture(file);
+      }
     }
-};
-
-  
+  };
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -50,10 +46,9 @@ function CreateId() {
     fetchData();
   }, [location]);
 
-
   const fetchData = async () => {
     try {
-      const url = `https://kdemapi.insideoutprojects.in/api/participants/event/${eventId}`;
+      const url = `http://localhost:5000/api/participants/event/${eventId}`;
       const response = await axios.get(url);
       console.log("Participants by EventId:", response.data); // Log fetched participants
       setDataid(response.data); // Update state with fetched data
@@ -69,77 +64,81 @@ function CreateId() {
     fetchData();
   }, []);
 
-
+  const [isCreating, setIsCreating] = useState(false); // New state for loading spinner
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    setIsCreating(true); // Start loading spinner
 
     try {
-        const formData = new FormData();
-        
-        // Append non-file data
-        formData.append('firstName', firstName);
-        formData.append('lastName', lastName);
-        formData.append('designation', designation);
-        formData.append('idCardType', selectedIdCardType);
-        formData.append('institute', institute);
-        formData.append('eventId', eventId);
-        formData.append('eventName', eventName);
-        
-        // Append file data
-        if (backgroundImage) {
-            formData.append('backgroundImage', backgroundImage);
-        }
-        if (profilePicture) {
-            formData.append('profilePicture', profilePicture);
-        }
+      const formData = new FormData();
 
-        const response = await axios.post(
-            "https://kdemapi.insideoutprojects.in/api/participants",
-            formData,
-            {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-            }
-        );
+      // Append non-file data
+      formData.append("firstName", firstName);
+      formData.append("lastName", lastName);
+      formData.append("designation", designation);
+      formData.append("idCardType", selectedIdCardType);
+      formData.append("institute", institute);
+      formData.append("eventId", eventId);
+      formData.append("eventName", eventName);
+      formData.append("backgroundImage", backgroundImage);
 
-        setIdCard([...idCard, response.data]); // Update state with new ID card
-        fetchData(eventId);
-        toggleModal();
-        toast.success("ID CARD created successfully!", "Success");
+      // Append file data
+
+      if (profilePicture) {
+        formData.append("profilePicture", profilePicture);
+      }
+
+      const response = await axios.post(
+        "http://localhost:5000/api/participants",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      setIdCard([...idCard, response.data]); // Update state with new ID card
+      fetchData(eventId);
+      toggleModal();
+      toast.success("ID CARD created successfully!", "Success");
     } catch (error) {
-        console.error("Error creating participant:", error);
+      console.error("Error creating participant:", error);
+    } finally {
+      setIsCreating(false); // Stop loading spinner
     }
-};
+  };
 
+  const handleDownload = async (index) => {
+    const idCardElement = document.getElementById(`id-card-${index}`);
+    const downloadButton = document.getElementById(`download-button-${index}`);
 
-  
-const handleDownload = async (index) => {
-  const idCardElement = document.getElementById(`id-card-${index}`);
-  const downloadButton = document.getElementById(`download-button-${index}`);
+    if (!idCardElement || !downloadButton) {
+      console.error("Element not found");
+      return;
+    }
 
-  if (!idCardElement || !downloadButton) {
-    console.error('Element not found');
-    return;
-  }
+    downloadButton.style.display = "none";
 
-  downloadButton.style.display = "none";
+    try {
+      const dataUrl = await toPng(idCardElement, { quality: 1, pixelRatio: 4 });
+      const link = document.createElement("a");
+      link.href = dataUrl;
+      link.download = "id-card.png";
+      link.click();
+    } catch (error) {
+      console.error("Error generating PNG:", error);
+    } finally {
+      downloadButton.style.display = "block";
+    }
+  };
 
-  try {
-    const dataUrl = await toPng(idCardElement, { quality: 1, pixelRatio: 4 });
-    const link = document.createElement('a');
-    link.href = dataUrl;
-    link.download = 'id-card.png';
-    link.click();
-  } catch (error) {
-    console.error('Error generating PNG:', error);
-  } finally {
-    downloadButton.style.display = "block";
-  }
-};
+  useEffect(() => {
+    setBackgroundImage(designations[0]?.idcardimage);
+  }, [designations]);
 
-  const [designations, setDesignations] = useState([]); // State to hold fetched designations
+  console.log("backgroundImage", backgroundImage);
   const barcodeRef = useRef(null);
 
   useEffect(() => {
@@ -148,14 +147,13 @@ const handleDownload = async (index) => {
         format: "CODE128",
         displayValue: true,
         height: 60, // Adjust the height here as needed
-
       });
     }
   }, [idCard.participantId]);
   // Function to fetch designations from API
   const fetchDesignations = async (eventId) => {
     try {
-      const response = await axios.get(`https://kdemapi.insideoutprojects.in/api/events`);
+      const response = await axios.get(`http://localhost:5000/api/events`);
       const filteredDesignations = response.data.filter(
         (categories) => categories._id === eventId
       );
@@ -166,14 +164,15 @@ const handleDownload = async (index) => {
   };
   console.log("categories", designations);
 
-  useEffect(() => {
-    fetchDesignations(eventId); // Pass the eventid you want to filter by
-  }, [eventId]);
+  // useEffect(() => {
+  //   // Pass the eventid you want to filter by
+  // }, [eventId]);
 
   const navigate = useNavigate();
 
   const toggleModal = () => {
     setModal(!modal);
+    fetchDesignations(eventId); 
   };
 
   const handleNavigate = () => {
@@ -201,7 +200,9 @@ const handleDownload = async (index) => {
               <rect width="18" height="18" x="3" y="4" rx="2"></rect>
               <path d="M3 10h18"></path>
             </svg>
-            <span className="font-bold tracking-tight">Event ID Card Generator App</span>
+            <span className="font-bold tracking-tight">
+              Event ID Card Generator App
+            </span>
           </a>
           <div className="flex gap-10">
             <button
@@ -348,67 +349,7 @@ const handleDownload = async (index) => {
                           </div>
                         </div>
                       </div>
-                      {/* <div>
-                                                <label htmlFor="idCardType" className="block text-sm font-medium text-gray-700">
-                                                    Select ID Card Type
-                                                </label>
-                                                <div className="mt-1">
-                                                    <ul className="flex items-center gap-5 justify-between text-sm font-medium text-gray-500 dark:text-gray-400 mb-4">
-                                                        <li className="w-full">
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => handleClick('vertical')}
-                                                                className={`inline-flex items-center px-4 py-3 h-[50px] border text-black rounded w-full ${selectedIdCardType === 'vertical' ? 'bg-black text-white' : 'bg-gray-200'}`}
-                                                            >
-                                                                <div className={`border h-8 w-6 grid py-[2px] items-center justify-center rounded-[2px] me-2 ${selectedIdCardType === 'vertical' ? 'border-black' : 'border-white'}`}>
-                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-person" viewBox="0 0 16 16">
-                                                                        <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6m2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0m4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4m-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10s-3.516.68-4.168 1.332c-.678.678-.83 1.418-.832 1.664z" />
-                                                                    </svg>
-                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-border-width" viewBox="0 0 16 16">
-                                                                        <path d="M0 3.5A.5.5 0 0 1 .5 3h15a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5H.5a.5.5 0 0 1-.5-.5zm0 5A.5.5 0 0 1 .5 8h15a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5H.5a.5.5 0 0 1-.5-.5zm0 4a.5.5 0 0 1 .5-.5h15a.5.5 0 0 1 0 1H.5a.5.5 0 0 1-.5-.5" />
-                                                                    </svg>
-                                                                </div>
-                                                                Vertical
-                                                            </button>
-                                                        </li>
-                                                        <li className="w-full">
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => handleClick('horizontal')}
-                                                                className={`inline-flex items-center px-4 py-3 border text-black rounded w-full ${selectedIdCardType === 'horizontal' ? 'bg-black text-white' : 'bg-gray-200'}`}
-                                                            >
-                                                                <div className={`border flex items-center justify-between px-[2px] h-6 w-10 rounded-[2px] me-2 ${selectedIdCardType === 'horizontal' ? 'border-white' : 'border-black'}`}>
-                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-person" viewBox="0 0 16 16">
-                                                                        <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6m2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0m4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4m-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10s-3.516.68-4.168 1.332c-.678.678-.83 1.418-.832 1.664z" />
-                                                                    </svg>
-                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-border-width" viewBox="0 0 16 16">
-                                                                        <path d="M0 3.5A.5.5 0 0 1 .5 3h15a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5H.5a.5.5 0 0 1-.5-.5zm0 5A.5.5 0 0 1 .5 8h15a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5H.5a.5.5 0 0 1-.5-.5zm0 4a.5.5 0 0 1 .5-.5h15a.5.5 0 0 1 0 1H.5a.5.5 0 0 1-.5-.5" />
-                                                                    </svg>
-                                                                </div>
-                                                                Horizontal
-                                                            </button>
-                                                        </li>
-                                                    </ul>
-                                                </div>
-                                            </div> */}
-                      <div>
-                        <label
-                          htmlFor="backgroundImage"
-                          className="block text-sm font-medium text-gray-700"
-                        >
-                          Upload Background Image
-                        </label>
-                        <div className="mt-1">
-                          <input
-                            type="file"
-                            id="backgroundImage"
-                            name="backgroundImage"
-                            className="file:hidden"
-                            accept="image/*"
-                            onChange={handleImageChange}
-                          />
-                        </div>
-                      </div>
+
                       <div>
                         <label
                           htmlFor="profilePicture"
@@ -427,19 +368,46 @@ const handleDownload = async (index) => {
                           />
                         </div>
                       </div>
-                      <div className="flex justify-end gap-5">
+                      <div className="flex justify-between gap-5">
                         <button
                           type="button"
-                          className="inline-flex justify-center px-4 py-2 text-sm font-medium text-black bg-gray-400 border border-transparent rounded-md hover:bg-gray-500 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                          className="inline-flex justify-center w-full px-4 py-2 text-sm font-medium text-black bg-gray-400 border border-transparent rounded-md hover:bg-gray-500 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                           onClick={toggleModal}
                         >
                           Cancel
                         </button>
                         <button
                           type="submit"
-                          className="ml-2 inline-flex  bg-black justify-center px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
+                          className="ml-2 inline-flex bg-black w-full justify-center px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
+                          disabled={isCreating} // Disable button when loading
                         >
-                          Create
+                          {isCreating ? (
+                            <>
+                              <svg
+                                className="animate-spin h-5 w-5 mr-3 text-white"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                              >
+                                <circle
+                                  className="opacity-25"
+                                  cx="12"
+                                  cy="12"
+                                  r="10"
+                                  stroke="currentColor"
+                                  strokeWidth="4"
+                                ></circle>
+                                <path
+                                  className="opacity-75"
+                                  fill="currentColor"
+                                  d="M4 12a8 8 0 018-8V0C6.477 0 2 4.477 2 10h2zm2 5.291A7.97 7.97 0 014 12H2c0 2.21.896 4.21 2.343 5.657l1.414-1.366z"
+                                ></path>
+                              </svg>
+                              Creating...
+                            </>
+                          ) : (
+                            "Create"
+                          )}
                         </button>
                       </div>
                     </form>
@@ -450,64 +418,7 @@ const handleDownload = async (index) => {
           </div>
         </div>
       )}
-      {/* <div className="flex justify-center  my-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full container mx-auto px-4">
-          {idCard.map((card, index) => (
-            <div key={index} className="relative p-4">
-              <div
-                id={`id-card-${index}`}
-                className="relative p-4 border rounded-[1px] h-[600px] w-full"
-                style={{
-                  backgroundImage: `url(${card.backgroundImage})`,
-                  backgroundSize: "cover",
-                  backgroundPosition: "center",
-                  backgroundRepeat: "no-repeat", // Ensure no repeat of background image
-                  imageRendering: "crisp-edges", // Use this for better rendering in some cases
-                }}
-              >
-                <div
-                  className={`relative z-10 flex justify-center h-full text-white`}
-                >
-                  <div
-                    className={`overflow-hidden flex-col justify-center mt-[190px] border-white`}
-                  >
-                    <h2 className="text-lg text-center mb-2 font-bold">
-                      {card.firstName} {card.lastName}
-                    </h2>
-                    <img
-                      src={card.profilePicture}
-                      alt="Profile"
-                      className="w-[170px] h-[170px] object-cover"
-                    />
-                    <p className="text-md font-semibold mt-2 text-center">
-                      {card.institute}
-                    </p>
-                    <p className="text-md font-semibold mt-10 text-black font-semibold text-center">
-                      {card.designation}
-                    </p>
-                    <div className="h-[10px]">
-                      <svg ref={barcodeRef}></svg>
-                    </div>
-                    <div className="text-black mt-10 text-center font-bold">
-                      {card.participantId}
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <button
-                id={`download-button-${index}`}
-                onClick={() => handleDownload(index)}
-                className="mt-2 bg-blue-500 text-white px-2 py-1 rounded"
-              >
-                Download
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
-    
 
-      <hr /> */}
       {loading ? (
         <div className="flex justify-center items-center h-[60vh]">
           <span class="loader"></span>

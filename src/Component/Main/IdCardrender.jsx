@@ -62,7 +62,7 @@ const IdCard = ({ card, handleDownload, index, fetchData }) => {
     }).then((result) => {
       if (result.isConfirmed) {
         axios
-          .patch(`https://kdemapi.insideoutprojects.in/api/participants/archive/${id}`, {
+          .patch(`http://localhost:5000/api/participants/archive/${id}`, {
             archive: true,
           }) // PATCH request to archive participant
           .then((res) => {
@@ -102,7 +102,7 @@ const IdCard = ({ card, handleDownload, index, fetchData }) => {
                 src={card.profilePicture}
                 style={{ objectFit: "cover" }}
                 alt="Profile"
-                className=" h-[170px]  "
+                className=" h-[170px] w-[170px]  "
               />
             </div>
             <p className="text-md font-semibold mt-2 text-center">

@@ -1,16 +1,36 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import * as XLSX from "xlsx";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const BulkUploadForm = () => {
   const [file, setFile] = useState(null);
-  const [backgroundImageBase64, setBackgroundImageBase64] = useState("");
+  const [designations, setDesignations] = useState([]);
+  const [backgroundImageFile, setBackgroundImageFile] = useState(null);
   const [message, setMessage] = useState("");
   const [params, setParams] = useState(new URLSearchParams());
-  const [eventId, setEventId] = useState('');
-  const [eventName, setEventName] = useState('');
+  const [eventId, setEventId] = useState("");
+  const [eventName, setEventName] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [backgroundImage, setBackgroundImage] = useState(null);
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const fetchDesignations = async (eventId) => {
+    try {
+      const response = await axios.get(`http://localhost:5000/api/events`);
+      const filteredDesignations = response.data.find(
+        (event) => event._id === eventId
+      );
+      setDesignations(filteredDesignations ? [filteredDesignations] : []);
+      if (filteredDesignations) {
+        setBackgroundImage(filteredDesignations.idcardimage);
+      }
+    } catch (error) {
+      console.error("Error fetching designations:", error);
+    }
+  };
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -21,31 +41,28 @@ const BulkUploadForm = () => {
     setEventName(name);
   }, [location]);
 
+  useEffect(() => {
+    if (eventId) {
+      fetchDesignations(eventId);
+    }
+  }, [eventId]);
+
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
   };
 
-  const handleBackgroundImageChange = async (e) => {
-    const file = e.target.files[0];
-    const reader = new FileReader();
-
-    reader.onloadend = () => {
-      setBackgroundImageBase64(reader.result);
-    };
-
-    if (file) {
-      reader.readAsDataURL(file);
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!file) {
       setMessage("Please select an Excel file.");
       return;
     }
 
+    setLoading(true); // Start loader
+
     const reader = new FileReader();
+
     reader.onload = async (event) => {
       try {
         const data = event.target.result;
@@ -57,65 +74,68 @@ const BulkUploadForm = () => {
 
         const sheetName = workbook.SheetNames[0];
         const sheet = workbook.Sheets[sheetName];
-        
+
         if (!sheet) {
           throw new Error(`Sheet '${sheetName}' not found in the workbook.`);
         }
 
         const rows = XLSX.utils.sheet_to_json(sheet);
-        
+
         if (rows.length === 0) {
           throw new Error("No data found in the sheet.");
         }
 
-        const combinedData = rows.map((row) => ({
-          ...row,
-          backgroundImage: backgroundImageBase64,
-          eventId,
-          eventName,
-        }));
+        const formData = new FormData();
+        formData.append("participants", JSON.stringify(rows));
+        formData.append("eventId", eventId);
+        formData.append("eventName", eventName);
+        formData.append("backgroundImage", backgroundImage);
+
+        // Log the FormData contents
+        for (let pair of formData.entries()) {
+          console.log(`${pair[0]}: ${pair[1]}`);
+        }
 
         const response = await axios.post(
-          "https://kdemapi.insideoutprojects.in/api/participants/bulk-upload",
-          { participants: combinedData },
+          "http://localhost:5000/api/participants/bulk-upload",
+          formData,
           {
             headers: {
-              "Content-Type": "application/json",
+              "Content-Type": "multipart/form-data",
             },
           }
         );
+
         setMessage("File uploaded successfully.");
+        toast.success("File uploaded successfully.");
         console.log("Bulk upload result:", response.data);
+        navigate(-1);
       } catch (error) {
         setMessage("Error uploading file.");
         console.error("Error in bulk upload:", error);
+      } finally {
+        setLoading(false); // Stop loader
       }
+    };
+
+    reader.onerror = (error) => {
+      setMessage("Error reading file.");
+      console.error("File reading error:", error);
+      setLoading(false); // Stop loader
     };
 
     reader.readAsBinaryString(file);
   };
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="container mx-auto p-4 relative">
+      {loading && (
+        <div className="absolute inset-0 mt-[200px] flex items-center justify-center bg-gray-800 bg-opacity-50 z-50">
+          <div className="w-16 h-16 border-4 border-t-4 border-blue-500 border-solid rounded-full animate-spin"></div>
+        </div>
+      )}
       <h1 className="text-2xl font-bold mb-4">Bulk Upload Participants</h1>
       <form onSubmit={handleSubmit}>
-        <div className="mb-4">
-          <label
-            htmlFor="backgroundImage"
-            className="block text-gray-700 text-sm font-bold mb-2"
-          >
-            Background Image:
-          </label>
-          <input
-            type="file"
-            id="backgroundImage"
-            name="backgroundImage"
-            accept="image/*"
-            onChange={handleBackgroundImageChange}
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-          />
-        </div>
-        
         <div className="mb-4">
           <label
             htmlFor="fileInput"
