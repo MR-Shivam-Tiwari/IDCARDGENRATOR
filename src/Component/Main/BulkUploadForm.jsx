@@ -16,7 +16,7 @@ const BulkUploadForm = () => {
   const [backgroundImage, setBackgroundImage] = useState(null);
   const location = useLocation();
   const navigate = useNavigate();
-
+  const [amenities, setamenities] = useState(null)
   const fetchDesignations = async (eventId) => {
     try {
       const response = await axios.get(`http://localhost:5000/api/events`);
@@ -31,7 +31,16 @@ const BulkUploadForm = () => {
       console.error("Error fetching designations:", error);
     }
   };
-
+  useEffect(() => {
+    setBackgroundImage(designations[0]?.idcardimage);
+  }, [designations]);
+  useEffect(() => {
+    // Assuming `designations` is an array and you are filtering for a specific event
+    const eventDesignations = designations.find(d => d._id === eventId);
+    if (eventDesignations) {
+      setamenities(eventDesignations.amenities || {});
+    }
+  }, [designations, eventId]);
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const id = params.get("eventid");
@@ -90,6 +99,8 @@ const BulkUploadForm = () => {
         formData.append("eventId", eventId);
         formData.append("eventName", eventName);
         formData.append("backgroundImage", backgroundImage);
+        const amenitiesObject = typeof amenities === 'object' ? amenities : {};
+        formData.append("amenities", JSON.stringify(amenitiesObject));
 
         // Log the FormData contents
         for (let pair of formData.entries()) {

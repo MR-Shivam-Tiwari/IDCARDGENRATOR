@@ -1,13 +1,10 @@
-import React, { useRef, useEffect } from "react";
-import JsBarcode from "jsbarcode";
+import React from "react";
 import Swal from "sweetalert2";
-import toastr from "sweetalert2";
-import { toast } from "react-toastify";
 import axios from "axios";
+import QRCode from "qrcode.react"; // Import the QR code component
+
 function IdCardrender({ Dataid, handleDownload, fetchData }) {
-  // Check if Dataid is an array and is empty
   if (!Array.isArray(Dataid) || Dataid.length === 0) {
-    // Display a message when Dataid is empty
     return (
       <div className="flex items-center justify-center h-full">
         <p className="text-lg font-bold text-center">
@@ -17,7 +14,6 @@ function IdCardrender({ Dataid, handleDownload, fetchData }) {
     );
   }
 
-  // Reverse the data to display in reverse order
   const reversedData = [...Dataid].reverse();
 
   return (
@@ -38,18 +34,6 @@ function IdCardrender({ Dataid, handleDownload, fetchData }) {
 }
 
 const IdCard = ({ card, handleDownload, index, fetchData }) => {
-  const barcodeRef = useRef(null);
-
-  useEffect(() => {
-    if (barcodeRef.current) {
-      JsBarcode(barcodeRef.current, card.participantId, {
-        format: "CODE128",
-        displayValue: true,
-        height: 45, // Adjust the height here as needed
-      });
-    }
-  }, [card.participantId]);
-
   const handleDelete = (id) => {
     Swal.fire({
       title: "Archive ID Cards?",
@@ -77,6 +61,9 @@ const IdCard = ({ card, handleDownload, index, fetchData }) => {
     });
   };
 
+  const participantUrl = `http://localhost:3000/approve/${card.id}`;
+
+
   return (
     <div className="relative p-4">
       <div
@@ -86,8 +73,8 @@ const IdCard = ({ card, handleDownload, index, fetchData }) => {
           backgroundImage: `url(${card.backgroundImage})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
-          backgroundRepeat: "no-repeat", // Ensure no repeat of background image
-          imageRendering: "crisp-edges", // Use this for better rendering in some cases
+          backgroundRepeat: "no-repeat",
+          imageRendering: "crisp-edges",
         }}
       >
         <div className={`relative z-10 flex justify-center h-full text-white`}>
@@ -108,13 +95,17 @@ const IdCard = ({ card, handleDownload, index, fetchData }) => {
             <p className="text-md font-semibold mt-2 text-center">
               {card.institute}
             </p>
-            <p className="text-md font-semibold mt-7 mb-3 text-black font-semibold text-center">
+            <p className="text-md font-semibold mt-7  text-black  text-center">
               {card.designation}
             </p>
-            <div className="h-[10px]">
-              <svg ref={barcodeRef}></svg>
+            <div className="flex justify-center py-2">
+              <QRCode
+                value={participantUrl}
+                size={50}
+                level="H"
+              />
             </div>
-            <div className="text-black  text-center font-bold">
+            <div className="text-black text-xl text-center font-bold">
               {card.participantId}
             </div>
           </div>

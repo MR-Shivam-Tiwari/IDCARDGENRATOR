@@ -23,6 +23,7 @@ function CreateId() {
   const [selectedIdCardType, setSelectedIdCardType] = useState("vertical");
 
   const [backgroundImage, setBackgroundImage] = useState(null);
+  const [amenities, setamenities] = useState(null)
   const [profilePicture, setProfilePicture] = useState(null);
 
   const handleImageChange = (event) => {
@@ -65,78 +66,96 @@ function CreateId() {
   }, []);
 
   const [isCreating, setIsCreating] = useState(false); // New state for loading spinner
-
   const handleSubmit = async (event) => {
     event.preventDefault();
     setIsCreating(true); // Start loading spinner
 
     try {
-      const formData = new FormData();
+        const formData = new FormData();
 
-      // Append non-file data
-      formData.append("firstName", firstName);
-      formData.append("lastName", lastName);
-      formData.append("designation", designation);
-      formData.append("idCardType", selectedIdCardType);
-      formData.append("institute", institute);
-      formData.append("eventId", eventId);
-      formData.append("eventName", eventName);
-      formData.append("backgroundImage", backgroundImage);
+        // Append non-file data
+        formData.append("firstName", firstName);
+        formData.append("lastName", lastName);
+        formData.append("designation", designation);
+        formData.append("idCardType", selectedIdCardType);
+        formData.append("institute", institute);
+        formData.append("eventId", eventId);
+        formData.append("eventName", eventName);
 
-      // Append file data
+        // Ensure amenities is an object and convert it to JSON
+        const amenitiesObject = typeof amenities === 'object' ? amenities : {};
+        formData.append("amenities", JSON.stringify(amenitiesObject));
 
-      if (profilePicture) {
-        formData.append("profilePicture", profilePicture);
-      }
-
-      const response = await axios.post(
-        "http://localhost:5000/api/participants",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
+        // Append file data
+        if (backgroundImage) {
+            formData.append("backgroundImage", backgroundImage);
         }
-      );
 
-      setIdCard([...idCard, response.data]); // Update state with new ID card
-      fetchData(eventId);
-      toggleModal();
-      toast.success("ID CARD created successfully!", "Success");
+        if (profilePicture) {
+            formData.append("profilePicture", profilePicture);
+        }
+
+        // Send POST request
+        const response = await axios.post(
+            "http://localhost:5000/api/participants",
+            formData,
+            {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            }
+        );
+
+        // Update state with the new participant data
+        setIdCard([...idCard, response.data]); 
+        fetchData(eventId); // Refetch data as needed
+        toggleModal(); // Close modal if needed
+        toast.success("ID card created successfully!", "Success");
     } catch (error) {
-      console.error("Error creating participant:", error);
+        console.error("Error creating participant:", error);
     } finally {
-      setIsCreating(false); // Stop loading spinner
+        setIsCreating(false); // Stop loading spinner
     }
-  };
+};
 
-  const handleDownload = async (index) => {
-    const idCardElement = document.getElementById(`id-card-${index}`);
-    const downloadButton = document.getElementById(`download-button-${index}`);
 
-    if (!idCardElement || !downloadButton) {
-      console.error("Element not found");
-      return;
-    }
 
-    downloadButton.style.display = "none";
+const handleDownload = async (index) => {
+  const idCardElement = document.getElementById(`id-card-${index}`);
+  const downloadButton = document.getElementById(`download-button-${index}`);
 
-    try {
-      const dataUrl = await toPng(idCardElement, { quality: 1, pixelRatio: 4 });
-      const link = document.createElement("a");
-      link.href = dataUrl;
-      link.download = "id-card.png";
-      link.click();
-    } catch (error) {
-      console.error("Error generating PNG:", error);
-    } finally {
-      downloadButton.style.display = "block";
-    }
-  };
+  if (!idCardElement || !downloadButton) {
+    console.error("Element not found");
+    return;
+  }
+
+  downloadButton.style.display = "none";
+
+  try {
+    const dataUrl = await toPng(idCardElement, { quality: 1, pixelRatio: 4 });
+    const link = document.createElement("a");
+    link.href = dataUrl;
+    link.download = "id-card.png";
+    link.click();
+  } catch (error) {
+    console.error("Error generating PNG:", error);
+  } finally {
+    downloadButton.style.display = "block";
+  }
+};
+
 
   useEffect(() => {
     setBackgroundImage(designations[0]?.idcardimage);
   }, [designations]);
+  useEffect(() => {
+    // Assuming `designations` is an array and you are filtering for a specific event
+    const eventDesignations = designations.find(d => d._id === eventId);
+    if (eventDesignations) {
+      setamenities(eventDesignations.amenities || {});
+    }
+  }, [designations, eventId]);
+  
 
   console.log("backgroundImage", backgroundImage);
   const barcodeRef = useRef(null);
@@ -182,7 +201,7 @@ function CreateId() {
     <div>
       <header className="sticky top-0 z-50 w-full bg-gray-200 shadow-sm">
         <div className="flex h-16 mx-auto items-center justify-between px-4 lg:px-[80px]">
-          <a className="flex items-center gap-2" href="/" rel="ugc">
+          <a className="flex items-center gap-2" href="/event" rel="ugc">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="24"

@@ -14,10 +14,22 @@ function EventPage() {
   const [inputs, setInputs] = useState([]);
   const [currentInput, setCurrentInput] = useState("");
 
+  const [currentCategory, setCurrentCategory] = useState("");
+  const [categories, setCategories] = useState([]);
+  const [currentAmenity, setCurrentAmenity] = useState("");
+  const [amenities, setAmenities] = useState([]);
+
   const addCategory = () => {
     if (currentCategory.trim()) {
       setCategories([...categories, currentCategory.trim()]);
       setCurrentCategory("");
+    }
+  };
+
+  const addAmenity = () => {
+    if (currentAmenity.trim()) {
+      setAmenities([...amenities, currentAmenity.trim()]);
+      setCurrentAmenity("");
     }
   };
 
@@ -26,16 +38,20 @@ function EventPage() {
     setCategories(newCategories);
   };
 
+  const removeAmenity = (index) => {
+    const newAmenities = amenities.filter((_, i) => i !== index);
+    setAmenities(newAmenities);
+  };
+
   const [eventName, setEventName] = useState("");
   const [address, setAddress] = useState("");
-  const [date, setDate] = useState("");
+  const [endDate, setendDate] = useState("");
+  const [startDate, setDate] = useState("");
   const [photo, setPhoto] = useState(null); // State to hold base64 encoded image
   const [idcardimage, setIdcardimage] = useState(null); // State to hold base64 encoded image
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [eventId, setEventID] = useState("");
-  const [categories, setCategories] = useState([]);
-  const [currentCategory, setCurrentCategory] = useState("");
 
   const [isCreating, setIsCreating] = useState(false); // New state for loading spinner
 
@@ -47,10 +63,18 @@ function EventPage() {
       const formData = new FormData();
       formData.append("eventName", eventName);
       formData.append("address", address);
-      formData.append("date", date);
+      formData.append("startDate", startDate);
+      formData.append("endDate", endDate);
       formData.append("photo", photo); // Append event image
       formData.append("idcardimage", idcardimage); // Append ID card image
       formData.append("categories", JSON.stringify(categories)); // Convert categories to JSON string
+
+      // Convert amenities array to an object
+      const amenitiesObject = amenities.reduce((acc, amenity) => {
+        acc[amenity] = false;
+        return acc;
+      }, {});
+      formData.append("amenities", JSON.stringify(amenitiesObject)); // Convert amenities to JSON string
 
       // Debugging: Log FormData entries
       for (const [key, value] of formData.entries()) {
@@ -92,7 +116,7 @@ function EventPage() {
 
   const fetchEvents = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/api/events/");
+      const response = await axios.get("http://localhost:5000/api/events");
       setEvents(response.data);
       setLoading(false);
     } catch (error) {
@@ -157,7 +181,7 @@ function EventPage() {
     <div>
       <header className="sticky top-0 z-50 w-full bg-gray-200 shadow-sm">
         <div className="flex h-16 mx-auto items-center justify-between px-4 lg:px-[80px]">
-          <a className="flex items-center gap-2" href="/" rel="ugc">
+          <a className="flex items-center gap-2" href="/event" rel="ugc">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="24"
@@ -195,7 +219,7 @@ function EventPage() {
           aria-hidden="true"
           className="fixed inset-0 z-50 flex items-center justify-center w-full h-full bg-black bg-opacity-50"
         >
-          <div className="relative p-4 w-full max-w-2xl max-h-full">
+          <div className="relative p-4 w-full max-w-4xl max-h-full">
             <div className="relative bg-white rounded-lg shadow">
               <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t">
                 <div>
@@ -226,7 +250,7 @@ function EventPage() {
                   <span className="sr-only">Close modal</span>
                 </button>
               </div>
-              <div className="w-full max-w-2xl mx-auto py-5 px-4 sm:px-6 lg:px-8 overflow-y-auto max-h-[500px] sm:max-h-screen">
+              <div className="w-full max-w-4xl mx-auto py-10 px-4 sm:px-6 lg:px-8 overflow-y-auto max-h-[500px] sm:max-h-screen">
                 <div className="space-y-6">
                   <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -270,7 +294,7 @@ function EventPage() {
                         </div>
                       </div>
                     </div>
-                    <div className=" grid grid-cols-2 gap-6">
+                    <div className="grid lg:grid-cols-2 gap-6">
                       <div>
                         <label
                           htmlFor="Category"
@@ -316,10 +340,55 @@ function EventPage() {
                       </div>
                       <div>
                         <label
+                          htmlFor="Amenity"
+                          className="block mb-1 text-sm font-medium text-gray-700"
+                        >
+                          Amenity
+                        </label>
+                        <div className="flex items-center space-x-4">
+                          <input
+                            type="text"
+                            value={currentAmenity}
+                            onChange={(e) => setCurrentAmenity(e.target.value)}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="Add Amenity"
+                          />
+                          <button
+                            onClick={addAmenity}
+                            className="px-4 w-20 bg-black h-8 text-white rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          >
+                            Add
+                          </button>
+                        </div>
+                        <div className="mt-4">
+                          {amenities.length > 0 && (
+                            <ul className="list-disc list-inside space-y-2">
+                              {amenities.map((amenity, index) => (
+                                <li
+                                  key={index}
+                                  className="flex items-center justify-between text-gray-700"
+                                >
+                                  <span>{amenity}</span>
+                                  <button
+                                    onClick={() => removeAmenity(index)}
+                                    className="px-2 py-1 bg-red-500 text-white rounded-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
+                                  >
+                                    Remove
+                                  </button>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="grid lg:grid-cols-2  gap-7">
+                      <div>
+                        <label
                           htmlFor="date"
                           className="block text-sm font-medium text-gray-700"
                         >
-                          Date
+                          Start Date
                         </label>
                         <div className="mt-1">
                           <input
@@ -327,14 +396,33 @@ function EventPage() {
                             id="date"
                             className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                             placeholder="Select Event Date"
-                            value={date}
+                            value={startDate}
                             onChange={(e) => setDate(e.target.value)}
                             required
                           />
                         </div>
                       </div>
+                      <div>
+                        <label
+                          htmlFor="date"
+                          className="block text-sm font-medium text-gray-700"
+                        >
+                          End Date
+                        </label>
+                        <div className="mt-1">
+                          <input
+                            type="date"
+                            id="date"
+                            className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            placeholder="Select Event Date"
+                            value={endDate}
+                            onChange={(e) => setendDate(e.target.value)}
+                            required
+                          />
+                        </div>
+                      </div>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div className="grid   grid-cols-1 sm:grid-cols-2 gap-6">
                       <div>
                         <label
                           htmlFor="event-image"
@@ -372,7 +460,7 @@ function EventPage() {
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between px-10 gap-10">
+                    <div className="flex  items-center justify-between  pt-5 gap-10">
                       <button
                         type="button"
                         onClick={toggleModal}
@@ -439,19 +527,18 @@ function EventPage() {
                     key={event._id}
                     className="relative h-64 cursor-pointer overflow-hidden rounded-lg"
                   >
-                      <img
-                        src={event.photoUrl}
-                        alt={event.eventName}
-                        className="w-full h-full object-cover"
-                        width="600"
-                        height="400"
-                        style={{ aspectRatio: "600/400", objectFit: "cover" }}
-                        onError={(e) => {
-                          e.target.src =
-                            "https://www.cvent.com/sites/default/files/styles/focus_scale_and_crop_800x450/public/image/2019-10/48980241783_2b57e5f535_k.jpg?h=a1e1a043&itok=TvObf6VQ";
-                        }}
-                      />
-                  
+                    <img
+                      src={event.photoUrl}
+                      alt={event.eventName}
+                      className="w-full h-full object-cover"
+                      width="600"
+                      height="400"
+                      style={{ aspectRatio: "600/400", objectFit: "cover" }}
+                      onError={(e) => {
+                        e.target.src =
+                          "https://www.cvent.com/sites/default/files/styles/focus_scale_and_crop_800x450/public/image/2019-10/48980241783_2b57e5f535_k.jpg?h=a1e1a043&itok=TvObf6VQ";
+                      }}
+                    />
 
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent p-4">
                       <div className="flex gap-4 justify-between">
@@ -479,49 +566,56 @@ function EventPage() {
                         <h3 className="text-3xl mb-1 font-bold text-white">
                           {event.eventName}
                         </h3>
-                        <div className="flex items-center gap-2 mb-8 shadow-full text-sm text-white">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="24"
-                            height="24"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className="h-4 w-4"
-                          >
-                            <path d="M8 2v4"></path>
-                            <path d="M16 2v4"></path>
-                            <rect
-                              width="18"
-                              height="18"
-                              x="3"
-                              y="4"
-                              rx="2"
-                            ></rect>
-                            <path d="M3 10h18"></path>
-                          </svg>
-                          <span className="font-bold">
-                            {new Date(event.date).toDateString()}
-                          </span>
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="24"
-                            height="24"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className="h-4 w-4"
-                          >
-                            <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
-                            <circle cx="12" cy="10" r="3"></circle>
-                          </svg>
-                          <span className="font-bold">{event.address}</span>
+                        <div className=" items-center gap-2 mb-8 shadow-full text-sm text-white">
+                          <div className="font-semibold flex  border p-1 items-center gap-2  rounded-sm bg-slate-200 text-black">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="24"
+                              height="24"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              className="h-4 w-4"
+                            >
+                              <path d="M8 2v4"></path>
+                              <path d="M16 2v4"></path>
+                              <rect
+                                width="18"
+                                height="18"
+                                x="3"
+                                y="4"
+                                rx="2"
+                              ></rect>
+                              <path d="M3 10h18"></path>
+                            </svg>
+
+                            <span className="">
+                              {new Date(event.startDate).toDateString()}{" "}
+                              <strong>To</strong>{" "}
+                              {new Date(event.endDate).toDateString()}
+                            </span>
+                          </div>
+                          <div className="font-semibold border mt-2 p-1 gap-2 flex  items-center px-2 rounded-sm bg-slate-200 text-black">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="24"
+                              height="24"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              className="h-4 w-4"
+                            >
+                              <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
+                              <circle cx="12" cy="10" r="3"></circle>
+                            </svg>
+                            <span>{event.address}</span>
+                          </div>
                         </div>
                       </div>
                     </div>

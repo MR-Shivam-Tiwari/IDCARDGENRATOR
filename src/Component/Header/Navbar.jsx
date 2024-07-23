@@ -39,8 +39,8 @@ function Navbar() {
           </svg>
         </div>
         <div
-          class="mr-3 ml-2 gap-1  hidden lg:block lg:flex flex  items-center cursor-pointer"
-          onClick={() => navigate("/")}
+          class="mr-3 ml-2 gap-1  hidden lg:block    items-center cursor-pointer"
+          onClick={() => navigate("/event")}
         >
           <img src={logo} alt="" className="w-40 p-2 h-20" />
         </div>
