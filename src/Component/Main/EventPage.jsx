@@ -150,6 +150,30 @@ function EventPage() {
     // Navigate to the /task route with the group ID and group name as parameters
     navigate(`/create-id?eventid=${groupId}&eventName=${groupName}`);
   };
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedOption, setSelectedOption] = useState({
+    name: "Tom Cook",
+    imgSrc:
+      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
+  });
+
+  const options = [
+    {
+      name: "Wade Cooper",
+      imgSrc:
+        "https://images.unsplash.com/photo-1491528323818-fdd1faba62cc?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
+    },
+    // Add more options here
+  ];
+
+  const handleToggle = () => {
+    setIsOpen(!isOpen);
+  };
+
+  const handleSelect = (option) => {
+    setSelectedOption(option);
+    setIsOpen(false);
+  };
 
   const handleDelete = (id) => {
     Swal.fire({
@@ -177,6 +201,12 @@ function EventPage() {
     });
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("email");
+    navigate("/");
+  };
+
   return (
     <div>
       <header className="sticky top-0 z-50 w-full bg-gray-200 shadow-sm">
@@ -199,16 +229,155 @@ function EventPage() {
               <rect width="18" height="18" x="3" y="4" rx="2"></rect>
               <path d="M3 10h18"></path>
             </svg>
-            <span className="font-bold tracking-tight">
+            <span className="font-bold hidden lg:block tracking-tight">
               Event ID Card Generator App
             </span>
           </a>
-          <button
-            onClick={toggleModal}
-            className="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium bg-black text-white transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-9 rounded-md px-3"
-          >
-            Create Event
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={toggleModal}
+              className="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium bg-black text-white transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-9 rounded-md px-3"
+            >
+              Create Event
+            </button>
+
+            <div>
+              <div className="relative ">
+                <button
+                  type="button"
+                  className="relative w-full cursor-default rounded-md bg-white h-10 py-1.5 pl-3 pr-10 text-left text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:text-sm sm:leading-6"
+                  aria-haspopup="listbox"
+                  aria-expanded={isOpen}
+                  aria-labelledby="listbox-label"
+                  onClick={handleToggle}
+                >
+                  <span className="flex items-center">
+                    <img
+                      src="https://uxwing.com/wp-content/themes/uxwing/download/peoples-avatars/corporate-user-icon.png"
+                      alt=""
+                      className="h-5 w-5 flex-shrink-0 rounded-full"
+                    />
+                    <span className="ml-3 block  truncate">
+                      {selectedOption.name}
+                    </span>
+                  </span>
+                  <span className="pointer-events-none absolute inset-y-0 right-0 ml-3 flex items-center pr-2">
+                    <svg
+                      className="h-5 w-5 text-gray-400"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                      aria-hidden="true"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 3a.75.75 0 01.55.24l3.25 3.5a.75.75 0 11-1.1 1.02L10 4.852 7.3 7.76a.75.75 0 01-1.1-1.02l3.25-3.5A.75.75 0 0110 3zm-3.76 9.2a.75.75 0 011.06.04l2.7 2.908 2.7-2.908a.75.75 0 111.1 1.02l-3.25 3.5a.75.75 0 01-1.1 0l-3.25-3.5a.75.75 0 01.04-1.06z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </span>
+                </button>
+
+                {isOpen && (
+                  <ul className="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                    {options.map((option, index) => (
+                      <>
+                        <li
+                          key={index}
+                          className={`relative select-none py-2 hover:bg-gray-200 cursor-pointer px-3 ${
+                            option === selectedOption
+                              ? "bg-indigo-600 text-white"
+                              : "text-gray-900"
+                          }`}
+                          role="option"
+                          onClick={() => navigate("/archive-event")}
+                        >
+                          <div className="flex items-center text-[15px]  justify-between">
+                            Archive Events{" "}
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="20"
+                              height="20"
+                              fill="currentColor"
+                              class="bi bi-file-earmark-zip"
+                              viewBox="0 0 16 16"
+                            >
+                              <path d="M5 7.5a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v.938l.4 1.599a1 1 0 0 1-.416 1.074l-.93.62a1 1 0 0 1-1.11 0l-.929-.62a1 1 0 0 1-.415-1.074L5 8.438zm2 0H6v.938a1 1 0 0 1-.03.243l-.4 1.598.93.62.929-.62-.4-1.598A1 1 0 0 1 7 8.438z" />
+                              <path d="M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1h-2v1h-1v1h1v1h-1v1h1v1H6V5H5V4h1V3H5V2h1V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5z" />
+                            </svg>
+                          </div>
+
+                          {option === selectedOption && (
+                            <span className="absolute inset-y-0 right-0 flex items-center pr-4 text-indigo-600">
+                              <svg
+                                className="h-5 w-5"
+                                viewBox="0 0 20 20"
+                                fill="currentColor"
+                                aria-hidden="true"
+                              >
+                                <path
+                                  fillRule="evenodd"
+                                  d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z"
+                                  clipRule="evenodd"
+                                />
+                              </svg>
+                            </span>
+                          )}
+                        </li>
+                        <li
+                          key={index}
+                          className={`relative hover:bg-gray-200 cursor-pointer select-none  border-t-2 py-2 px-3 ${
+                            option === selectedOption
+                              ? "bg-indigo-600 text-white"
+                              : "text-gray-900"
+                          }`}
+                          role="option"
+                          onClick={handleLogout}
+                        >
+                          <div className="flex items-center text-[15px]  justify-between">
+                            Logout{" "}
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="20"
+                              height="20"
+                              fill="currentColor"
+                              class="bi bi-box-arrow-right"
+                              viewBox="0 0 16 16"
+                            >
+                              <path
+                                fill-rule="evenodd"
+                                d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0z"
+                              />
+                              <path
+                                fill-rule="evenodd"
+                                d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708z"
+                              />
+                            </svg>
+                          </div>
+
+                          {option === selectedOption && (
+                            <span className="absolute inset-y-0 right-0 flex items-center pr-4 text-indigo-600">
+                              <svg
+                                className="h-5 w-5"
+                                viewBox="0 0 20 20"
+                                fill="currentColor"
+                                aria-hidden="true"
+                              >
+                                <path
+                                  fillRule="evenodd"
+                                  d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z"
+                                  clipRule="evenodd"
+                                />
+                              </svg>
+                            </span>
+                          )}
+                        </li>
+                      </>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       </header>
 
@@ -437,7 +606,6 @@ function EventPage() {
                             accept="image/*"
                             onChange={handleFileChange}
                             className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                            required
                           />
                         </div>
                       </div>
@@ -528,16 +696,13 @@ function EventPage() {
                     className="relative h-64 cursor-pointer overflow-hidden rounded-lg"
                   >
                     <img
-                      src={event.photoUrl}
+                      src={event.photoUrl || "https://www.cvent.com/sites/default/files/styles/focus_scale_and_crop_800x450/public/image/2019-10/48980241783_2b57e5f535_k.jpg?h=a1e1a043&itok=TvObf6VQ"}
                       alt={event.eventName}
                       className="w-full h-full object-cover"
                       width="600"
                       height="400"
                       style={{ aspectRatio: "600/400", objectFit: "cover" }}
-                      onError={(e) => {
-                        e.target.src =
-                          "https://www.cvent.com/sites/default/files/styles/focus_scale_and_crop_800x450/public/image/2019-10/48980241783_2b57e5f535_k.jpg?h=a1e1a043&itok=TvObf6VQ";
-                      }}
+                    
                     />
 
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent p-4">

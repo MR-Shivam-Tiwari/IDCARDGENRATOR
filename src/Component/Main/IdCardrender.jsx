@@ -3,7 +3,7 @@ import Swal from "sweetalert2";
 import axios from "axios";
 import QRCode from "qrcode.react"; // Import the QR code component
 
-function IdCardrender({ Dataid, handleDownload, fetchData }) {
+function IdCardrender({ Dataid, handleDownload, fetchData, isLoading }) {
   if (!Array.isArray(Dataid) || Dataid.length === 0) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -18,7 +18,7 @@ function IdCardrender({ Dataid, handleDownload, fetchData }) {
 
   return (
     <div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10 w-full container mx-auto px-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2  lg:grid-cols-2 gap-10 w-full container mx-auto px-4">
         {reversedData.map((card, index) => (
           <IdCard
             key={index}
@@ -26,6 +26,7 @@ function IdCardrender({ Dataid, handleDownload, fetchData }) {
             handleDownload={handleDownload}
             fetchData={fetchData}
             index={index}
+            isLoading={isLoading}
           />
         ))}
       </div>
@@ -33,7 +34,7 @@ function IdCardrender({ Dataid, handleDownload, fetchData }) {
   );
 }
 
-const IdCard = ({ card, handleDownload, index, fetchData }) => {
+const IdCard = ({ card, handleDownload, index, fetchData, isLoading }) => {
   const handleDelete = (id) => {
     Swal.fire({
       title: "Archive ID Cards?",
@@ -63,49 +64,44 @@ const IdCard = ({ card, handleDownload, index, fetchData }) => {
 
   const participantUrl = `http://localhost:3000/approve/${card.id}`;
 
-
   return (
-    <div className="relative p-4">
+    <div className="relative mb-10 ">
       <div
         id={`id-card-${index}`}
-        className="relative p-4 border rounded-[1px] h-[600px] w-full"
+        className="relative   rounded-[1px] lg:h-[560px] md:h-[800px]  h-full w-full"
         style={{
           backgroundImage: `url(${card.backgroundImage})`,
-          backgroundSize: "cover",
+          backgroundSize: "contain",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
           imageRendering: "crisp-edges",
         }}
       >
-        <div className={`relative z-10 flex justify-center h-full text-white`}>
+        <div className={`relative z-10 flex justify-center  h-full text-white`}>
           <div
-            className={`overflow-hidden flex-col justify-center mt-[190px] border-white`}
+            className={`overflow-hidden flex-col justify-center lg:mt-[200px] mt-[242px] border-white`}
           >
-            <h2 className="text-lg text-center mb-2 font-bold">
+            <h2 className="text-lg text-center mb-2  font-bold">
               {card.firstName} {card.lastName}
             </h2>
-            <div className="flex justify-center">
+            <div className="flex justify-center ">
               <img
                 src={card.profilePicture}
                 style={{ objectFit: "cover" }}
                 alt="Profile"
-                className=" h-[170px] w-[170px]  "
+                className=" lg:h-[150px] lg:w-[150px] h-[140px]  w-[140px] "
               />
             </div>
-            <p className="text-md font-semibold mt-2 text-center">
+            <p className="lg:text-xl text-[12px] font-semibold mt-2  text-center">
               {card.institute}
             </p>
-            <p className="text-md font-semibold mt-7  text-black  text-center">
+            <p className="text-lg font-semibold lg:mt-3 mt-1  lg:text-xl   text-black  text-center">
               {card.designation}
             </p>
-            <div className="flex justify-center py-2">
-              <QRCode
-                value={participantUrl}
-                size={50}
-                level="H"
-              />
+            <div className="flex justify-center lg:mt-0  py-2">
+              <QRCode value={participantUrl} size={45} level="H" />
             </div>
-            <div className="text-black text-xl text-center font-bold">
+            <div className="text-black lg:text-xl text-[12px] text-center font-bold">
               {card.participantId}
             </div>
           </div>
@@ -114,7 +110,7 @@ const IdCard = ({ card, handleDownload, index, fetchData }) => {
       <div className="flex gap-4 mt-3 justify-end">
         <button
           onClick={() => handleDelete(card._id)}
-          className="border text-black  p-3 bg-gray-300 rounded-full hover:bg-gray-400"
+          className="border text-black p-3 bg-gray-300 rounded-full hover:bg-gray-400"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -130,19 +126,32 @@ const IdCard = ({ card, handleDownload, index, fetchData }) => {
         <button
           id={`download-button-${index}`}
           onClick={() => handleDownload(index)}
-          className="border text-black  p-3 bg-gray-300 rounded-full hover:bg-gray-400"
+          className="border text-black p-3 bg-gray-300 rounded-full "
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            fill="currentColor"
-            className="bi bi-download"
-            viewBox="0 0 16 16"
-          >
-            <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
-            <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
-          </svg>
+          {isLoading === index ? (
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              fill="currentColor"
+              className="bi bi-arrow-repeat animate-spin"
+              viewBox="0 0 16 16"
+            >
+              <path d="M11.534 7h1.932A6.5 6.5 0 1 1 8 1.5V0a7.5 7.5 0 1 0 7.5 7.5h-1.041A6.477 6.477 0 0 1 11.534 7z" />
+            </svg>
+          ) : (
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              fill="currentColor"
+              className="bi bi-download"
+              viewBox="0 0 16 16"
+            >
+              <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+              <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+            </svg>
+          )}
         </button>
       </div>
     </div>

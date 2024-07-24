@@ -1,58 +1,91 @@
-import React from "react";
-
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 function Login() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState(null);
+  const navigate = useNavigate();
+  const handleLogin = async (e) => {
+    e.preventDefault();
+
+    try {
+      const response = await fetch("http://localhost:5000/api/users/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("email", data.email);
+        toast.success("Login successful");
+        navigate("/event")
+        // Redirect or navigate to another page
+      } else {
+        setError(data.message);
+      }
+    } catch (err) {
+      setError("An error occurred. Please try again.");
+    }
+  };
+
   return (
-    <div>
-      <div class="flex min-h-screen items-center justify-center ">
-        <div
-          class="rounded-lg border bg-card text-card-foreground bg-gray-100 shadow-xl  w-full max-w-md"
-          data-v0-t="card"
-        >
-          <div class="flex flex-col space-y-1.5 p-6">
-            <h3 class="whitespace-nowrap tracking-tight text-3xl font-bold">
-              Welcome Back
-            </h3>
-            <p class="text-sm text-muted-foreground">
-              Enter your email and password to access your account.
-            </p>
+    <div className="flex min-h-screen items-center justify-center">
+      <div className="rounded-lg border bg-card text-card-foreground bg-gray-100 shadow-xl w-full max-w-md">
+        <div className="flex flex-col space-y-1.5 p-6">
+          <h3 className="whitespace-nowrap tracking-tight text-3xl font-bold">
+            Welcome Back
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            Enter your email and password to access your account.
+          </p>
+        </div>
+        <form className="p-6 space-y-4" onSubmit={handleLogin}>
+          <div className="space-y-2">
+            <label className="text-sm font-medium leading-none" htmlFor="email">
+              Email
+            </label>
+            <input
+              className="flex h-10 w-full bg-white rounded-md border px-3 py-2 text-sm"
+              id="email"
+              placeholder="m@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              type="email"
+            />
           </div>
-          <div class="p-6 space-y-4">
-            <div class="space-y-2">
-              <label
-                class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                for="email"
-              >
-                Email
-              </label>
-              <input
-                class="flex h-10 w-full bg-white rounded-md border  px-3 py-2 text-sm      "
-                id="email"
-                placeholder="m@example.com"
-                required=""
-                type="email"
-              />
-            </div>
-            <div class="space-y-2">
-              <label
-                class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                for="password"
-              >
-                Password
-              </label>
-              <input
-                class="flex h-10 w-full bg-white rounded-md border  px-3 py-2 text-sm      "
-                id="password"
-                required=""
-                type="password"
-              />
-            </div>
+          <div className="space-y-2">
+            <label
+              className="text-sm font-medium leading-none"
+              htmlFor="password"
+            >
+              Password
+            </label>
+            <input
+              className="flex h-10 w-full bg-white rounded-md border px-3 py-2 text-sm"
+              id="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              type="password"
+            />
           </div>
-          <div class="flex items-center p-6">
-            <button class="inline-flex items-center justify-center whitespace-nowrap bg-black text-lg text-white rounded-md  font-medium  h-10 px-4 py-2 w-full">
+          {error && <p className="text-red-500 text-sm">{error}</p>}
+          <div className="flex items-center p-6">
+            <button
+              type="submit"
+              className="inline-flex items-center justify-center whitespace-nowrap bg-black text-lg text-white rounded-md font-medium h-10 px-4 py-2 w-full"
+            >
               Sign In
             </button>
           </div>
-        </div>
+        </form>
       </div>
     </div>
   );

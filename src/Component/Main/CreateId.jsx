@@ -120,29 +120,33 @@ function CreateId() {
 
 
 
-const handleDownload = async (index) => {
-  const idCardElement = document.getElementById(`id-card-${index}`);
-  const downloadButton = document.getElementById(`download-button-${index}`);
+const [isLoading, setIsLoading] = useState(false);
 
-  if (!idCardElement || !downloadButton) {
-    console.error("Element not found");
-    return;
-  }
+  const handleDownload = async (index) => {
+    const idCardElement = document.getElementById(`id-card-${index}`);
+    const downloadButton = document.getElementById(`download-button-${index}`);
 
-  downloadButton.style.display = "none";
+    if (!idCardElement || !downloadButton) {
+      console.error("Element not found");
+      return;
+    }
 
-  try {
-    const dataUrl = await toPng(idCardElement, { quality: 1, pixelRatio: 4 });
-    const link = document.createElement("a");
-    link.href = dataUrl;
-    link.download = "id-card.png";
-    link.click();
-  } catch (error) {
-    console.error("Error generating PNG:", error);
-  } finally {
-    downloadButton.style.display = "block";
-  }
-};
+    setIsLoading(true);
+    downloadButton.style.display = "none";
+
+    try {
+      const dataUrl = await toPng(idCardElement, { quality: 1, pixelRatio: 4 });
+      const link = document.createElement("a");
+      link.href = dataUrl;
+      link.download = "id-card.png";
+      link.click();
+    } catch (error) {
+      console.error("Error generating PNG:", error);
+    } finally {
+      setIsLoading(false);
+      downloadButton.style.display = "block";
+    }
+  };
 
 
   useEffect(() => {
@@ -449,6 +453,7 @@ const handleDownload = async (index) => {
           </div>
           <IdCardrender
             fetchData={fetchData}
+            isLoading={isLoading}
             Dataid={Dataid}
             handleDownload={handleDownload}
           />

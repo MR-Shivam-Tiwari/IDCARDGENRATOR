@@ -94,7 +94,7 @@ function ArchiveEvent() {
                   >
                     {event.photoUrl ? (
                       <img
-                        src={`data:image/jpeg;base64,${event.photoUrl}`}
+                        src={event.photoUrl}
                         alt={event.eventName}
                         className="w-full h-full object-cover"
                         width="600"

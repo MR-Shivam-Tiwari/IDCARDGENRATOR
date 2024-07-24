@@ -16,7 +16,7 @@ const BulkUploadForm = () => {
   const [backgroundImage, setBackgroundImage] = useState(null);
   const location = useLocation();
   const navigate = useNavigate();
-  const [amenities, setamenities] = useState(null)
+  const [amenities, setamenities] = useState(null);
   const fetchDesignations = async (eventId) => {
     try {
       const response = await axios.get(`http://localhost:5000/api/events`);
@@ -36,7 +36,7 @@ const BulkUploadForm = () => {
   }, [designations]);
   useEffect(() => {
     // Assuming `designations` is an array and you are filtering for a specific event
-    const eventDesignations = designations.find(d => d._id === eventId);
+    const eventDesignations = designations.find((d) => d._id === eventId);
     if (eventDesignations) {
       setamenities(eventDesignations.amenities || {});
     }
@@ -99,7 +99,7 @@ const BulkUploadForm = () => {
         formData.append("eventId", eventId);
         formData.append("eventName", eventName);
         formData.append("backgroundImage", backgroundImage);
-        const amenitiesObject = typeof amenities === 'object' ? amenities : {};
+        const amenitiesObject = typeof amenities === "object" ? amenities : {};
         formData.append("amenities", JSON.stringify(amenitiesObject));
 
         // Log the FormData contents
@@ -141,8 +141,8 @@ const BulkUploadForm = () => {
   return (
     <div className="container mx-auto p-4 relative">
       {loading && (
-        <div className="absolute inset-0 mt-[200px] flex items-center justify-center bg-gray-800 bg-opacity-50 z-50">
-          <div className="w-16 h-16 border-4 border-t-4 border-blue-500 border-solid rounded-full animate-spin"></div>
+        <div className="flex justify-center items-center h-[60vh]">
+          <span class="loader"></span>
         </div>
       )}
       <h1 className="text-2xl font-bold mb-4">Bulk Upload Participants</h1>

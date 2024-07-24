@@ -46,7 +46,7 @@ function Approved() {
         }
       );
       setParticipant(response.data);
-      toast.success("Approved")
+      toast.success("Approved");
     } catch (error) {
       console.error("Error updating amenities:", error);
       toast.error("Error updating amenities:", error);
@@ -104,22 +104,36 @@ function Approved() {
               {participant.amenities &&
                 Object.keys(participant.amenities).map((amenity, index) => (
                   <div key={index} className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={participant.amenities[amenity]}
-                      onChange={() => handleAmenityChange(amenity)}
-                      className="peer h-4 w-4 shrink-0 rounded-sm border border-primary ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                      id={`amenity-${index}`}
-                    />
-                    <label
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      htmlFor={`amenity-${index}`}
-                    >
-                      {amenity}
-                    </label>
+                    {participant.amenities[amenity] ? (
+                      <div className="flex items-center gap-2 border border-green-200   bg-green-200 rounded-sm p-1 px-2">
+                        <input
+                          type="checkbox"
+                          checked
+                          className="peer h-4 w-4 shrink-0 rounded-sm border border-blue-200 ring-offset-background bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        />
+                        <span className="text-black font-bold">{amenity}</span>
+                      </div>
+                    ) : (
+                      <>
+                        <input
+                          type="checkbox"
+                          checked={participant.amenities[amenity]}
+                          onChange={() => handleAmenityChange(amenity)}
+                          className="peer h-4 w-4 shrink-0 rounded-sm border border-blue-500 ring-offset-background bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                          id={`amenity-${index}`}
+                        />
+                        <label
+                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                          htmlFor={`amenity-${index}`}
+                        >
+                          {amenity}
+                        </label>
+                      </>
+                    )}
                   </div>
                 ))}
             </div>
+
             <div className="flex justify-end">
               <button
                 onClick={saveAmenities}
