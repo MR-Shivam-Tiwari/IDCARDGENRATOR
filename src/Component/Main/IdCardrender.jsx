@@ -62,7 +62,7 @@ const IdCard = ({ card, handleDownload, index, fetchData, isLoading }) => {
     });
   };
 
-  const participantUrl = `http://localhost:3000/approve/${card.id}`;
+  const participantUrl = `https://idcardgenrator.vercel.app/approve/${card.id}`;
 
   return (
     <div className="relative mb-10 ">
