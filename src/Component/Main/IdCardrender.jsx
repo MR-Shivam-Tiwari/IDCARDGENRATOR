@@ -35,6 +35,7 @@ function IdCardrender({ Dataid, handleDownload, fetchData, isLoading }) {
 }
 
 const IdCard = ({ card, handleDownload, index, fetchData, isLoading }) => {
+  console.log("icard id " , card)
   const handleDelete = (id) => {
     Swal.fire({
       title: "Archive ID Cards?",
@@ -62,7 +63,7 @@ const IdCard = ({ card, handleDownload, index, fetchData, isLoading }) => {
     });
   };
 
-  const participantUrl = `https://idcardgenrator.vercel.app/approve/${card.id}`;
+  const participantUrl = `https://idcardgenrator.vercel.app/approve/${card._id}`;
 
   return (
     <div className="relative mb-10 ">

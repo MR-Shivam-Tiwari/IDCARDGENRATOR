@@ -419,7 +419,7 @@ function EventPage() {
                   <span className="sr-only">Close modal</span>
                 </button>
               </div>
-              <div className="w-full max-w-4xl mx-auto py-10 px-4 sm:px-6 lg:px-8 overflow-y-auto max-h-[500px] sm:max-h-screen">
+              <div className="w-full max-w-4xl mx-auto py-10 px-4 sm:px-6 lg:px-8 overflow-y-auto h-[450px] sm:max-h-screen">
                 <div className="space-y-6">
                   <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
