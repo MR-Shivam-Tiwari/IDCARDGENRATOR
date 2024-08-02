@@ -96,11 +96,11 @@ const IdCard = ({ card, handleDownload, index, fetchData, isLoading }) => {
             <p className="lg:text-xl text-[12px] font-semibold mt-2  text-center">
               {card.institute}
             </p>
-            <p className="text-lg font-semibold lg:mt-3 mt-1  lg:text-xl   text-black  text-center">
+            <p className="text-md font-semibold lg:mt-3 mt-1  lg:text-[17px]   text-black  text-center">
               {card.designation}
             </p>
-            <div className="flex justify-center lg:mt-0  py-2">
-              <QRCode value={participantUrl} size={45} level="H" />
+            <div className="flex justify-center lg:mt-0  py-1">
+              <QRCode value={participantUrl} size={70} level="H" />
             </div>
             <div className="text-black lg:text-xl text-[12px] text-center font-bold">
               {card.participantId}
