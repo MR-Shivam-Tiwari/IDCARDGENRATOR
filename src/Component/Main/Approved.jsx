@@ -97,6 +97,7 @@ function Approved() {
                 </div>
               </div>
             </div>
+            
           </div>
           <div className="bg-muted rounded-lg p-6 md:p-8 lg:p-10">
             <h3 className="text-xl font-bold mb-4">Event Amenities</h3>

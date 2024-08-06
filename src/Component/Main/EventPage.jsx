@@ -707,8 +707,8 @@ function EventPage() {
 
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent p-4">
                       <div className="flex gap-4 justify-between">
-                        <button className="bg-yellow-400 text-black px-5 p-2 h-6 shadow-full flex items-center rounded font-bold">
-                          IDCARD - {event.participantCount}
+                        <button className="bg-yellow-400 text-black py-4  p-3 h-6 shadow-full flex items-center rounded-full font-bold">
+                        {event.participantCount}
                         </button>
                         <div className="flex gap-3">
                           <button
