@@ -44,7 +44,7 @@ body {
 /* Customize scrollbar */
 ::-webkit-scrollbar {
   width: 6px;  /* Vertical scrollbar width */
-  height: 0px; /* Horizontal scrollbar height */
+  height: 12px; /* Horizontal scrollbar height */
   border-radius: 0px;
 }
   

@@ -9,6 +9,7 @@ import Approved from './Component/Main/Approved';
 import Login from './Component/Auth/Login';
 import PrivateRoute from './PrivateRoute';
 import { ToastContainer } from 'react-toastify';
+import ArchiveIDCard from './Component/Main/Archive/ArchiveIDCard';
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
             <Route path="/bulk-create-id" element={<PrivateRoute element={BulkUploadForm} />} />
             <Route path="/archive-event" element={<PrivateRoute element={ArchiveEvent} />} />
             <Route path="/approve/:participantId" element={<PrivateRoute element={Approved} />} />
+            <Route path="/archive-id-card" element={<PrivateRoute element={ArchiveIDCard} />} />
           </Routes>
         </div>
       </Router>

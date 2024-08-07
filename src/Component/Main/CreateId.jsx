@@ -1,8 +1,10 @@
-import React, { useEffect, useRef, useState } from "react";
-import html2canvas from "html2canvas";
+import React, { useEffect, useRef, useState, useCallback } from "react";
+import Webcam from "react-webcam";
 import IdCardrender from "./IdCardrender";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
+import JSZip from "jszip";
+import { saveAs } from "file-saver";
 import { toast } from "react-toastify";
 import { toPng } from "html-to-image";
 import JsBarcode from "jsbarcode";
@@ -21,9 +23,9 @@ function CreateId() {
   const [eventName, setEventName] = useState("");
   const [institute, setInstitute] = useState("");
   const [selectedIdCardType, setSelectedIdCardType] = useState("vertical");
-
+  const [isWebcamEnabled, setIsWebcamEnabled] = useState(false);
   const [backgroundImage, setBackgroundImage] = useState(null);
-  const [amenities, setamenities] = useState(null)
+  const [amenities, setamenities] = useState(null);
   const [profilePicture, setProfilePicture] = useState(null);
 
   const handleImageChange = (event) => {
@@ -64,6 +66,28 @@ function CreateId() {
   useEffect(() => {
     fetchData();
   }, []);
+  const handleFileChange = (e) => {
+    setProfilePicture(e.target.files[0]);
+    setIsWebcamEnabled(false);
+  };
+
+  const handleCapture = (imageSrc) => {
+    const byteString = atob(imageSrc.split(",")[1]);
+    const mimeString = imageSrc.split(",")[0].split(":")[1].split(";")[0];
+    const ab = new ArrayBuffer(byteString.length);
+    const ia = new Uint8Array(ab);
+    for (let i = 0; i < byteString.length; i++) {
+      ia[i] = byteString.charCodeAt(i);
+    }
+    const blob = new Blob([ab], { type: mimeString });
+    setProfilePicture(blob);
+    setIsWebcamEnabled(false);
+  };
+
+  const handleRemovePicture = () => {
+    setProfilePicture(null);
+    setIsWebcamEnabled(false);
+  };
 
   const [isCreating, setIsCreating] = useState(false); // New state for loading spinner
   const handleSubmit = async (event) => {
@@ -71,58 +95,57 @@ function CreateId() {
     setIsCreating(true); // Start loading spinner
 
     try {
-        const formData = new FormData();
+      const formData = new FormData();
 
-        // Append non-file data
-        formData.append("firstName", firstName);
-        formData.append("lastName", lastName);
-        formData.append("designation", designation);
-        formData.append("idCardType", selectedIdCardType);
-        formData.append("institute", institute);
-        formData.append("eventId", eventId);
-        formData.append("eventName", eventName);
+      // Append non-file data
+      formData.append("firstName", firstName);
+      formData.append("lastName", lastName);
+      formData.append("designation", designation);
+      formData.append("idCardType", selectedIdCardType);
+      formData.append("institute", institute);
+      formData.append("eventId", eventId);
+      formData.append("eventName", eventName);
 
-        // Ensure amenities is an object and convert it to JSON
-        const amenitiesObject = typeof amenities === 'object' ? amenities : {};
-        formData.append("amenities", JSON.stringify(amenitiesObject));
+      // Ensure amenities is an object and convert it to JSON
+      const amenitiesObject = typeof amenities === "object" ? amenities : {};
+      formData.append("amenities", JSON.stringify(amenitiesObject));
 
-        // Append file data
-        if (backgroundImage) {
-            formData.append("backgroundImage", backgroundImage);
+      // Append file data
+      if (backgroundImage) {
+        formData.append("backgroundImage", backgroundImage);
+      }
+
+      if (profilePicture) {
+        formData.append("profilePicture", profilePicture);
+      }
+
+      // Send POST request
+      const response = await axios.post(
+        "https://kdemapi.insideoutprojects.in/api/participants",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
         }
+      );
 
-        if (profilePicture) {
-            formData.append("profilePicture", profilePicture);
-        }
-
-        // Send POST request
-        const response = await axios.post(
-            "https://kdemapi.insideoutprojects.in/api/participants",
-            formData,
-            {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
-            }
-        );
-
-        // Update state with the new participant data
-        setIdCard([...idCard, response.data]); 
-        fetchData(eventId); // Refetch data as needed
-        toggleModal(); // Close modal if needed
-        toast.success("ID card created successfully!", "Success");
+      // Update state with the new participant data
+      setIdCard([...idCard, response.data]);
+      fetchData(eventId); // Refetch data as needed
+      toggleModal(); // Close modal if needed
+      toast.success("ID card created successfully!", "Success");
     } catch (error) {
-        console.error("Error creating participant:", error);
+      console.error("Error creating participant:", error);
     } finally {
-        setIsCreating(false); // Stop loading spinner
+      setIsCreating(false); // Stop loading spinner
     }
-};
+  };
 
-
-
-const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleDownload = async (index) => {
+    setIsLoading(true);
     const idCardElement = document.getElementById(`id-card-${index}`);
     const downloadButton = document.getElementById(`download-button-${index}`);
 
@@ -131,7 +154,6 @@ const [isLoading, setIsLoading] = useState(false);
       return;
     }
 
-    setIsLoading(true);
     downloadButton.style.display = "none";
 
     try {
@@ -147,19 +169,75 @@ const [isLoading, setIsLoading] = useState(false);
       downloadButton.style.display = "block";
     }
   };
-
+  const handleDownloadAll = async (data) => {
+    setIsLoading(true);
+    const zip = new JSZip();
+  
+    for (let index = 0; index < data.length; index++) {
+      const card = data[index];
+      const idCardElement = document.getElementById(`id-card-${index}`);
+  
+      if (!idCardElement) {
+        console.error("Element not found", index);
+        continue;
+      }
+  
+      try {
+        const dataUrl = await toPng(idCardElement, { quality: 1, pixelRatio: 4 });
+        const base64Data = dataUrl.split("base64,")[1];
+        zip.file(`id-card-${index + 1}.png`, base64Data, { base64: true });
+      } catch (error) {
+        console.error("Error generating PNG:", error, index);
+      }
+    }
+  
+    zip.generateAsync({ type: "blob" }).then((content) => {
+      saveAs(content, "id-cards.zip");
+      setIsLoading(false);
+    });
+  };
+  
+  const handleDownloadWithoutBackground = async (index) => {
+    setIsLoading(true);
+    const idCardElement = document.getElementById(`id-card-${index}`);
+    const downloadButton = document.getElementById(`download-button-${index}`);
+  
+    if (!idCardElement || !downloadButton) {
+      console.error("Element not found");
+      setIsLoading(false);
+      return;
+    }
+  
+    const originalBackground = idCardElement.style.backgroundImage;
+    idCardElement.style.backgroundImage = "none"; // Remove background image
+  
+    downloadButton.style.display = "none";
+  
+    try {
+      const dataUrl = await toPng(idCardElement, { quality: 1, pixelRatio: 4 });
+      const link = document.createElement("a");
+      link.href = dataUrl;
+      link.download = "id-card-without-bg.png";
+      link.click();
+    } catch (error) {
+      console.error("Error generating PNG:", error);
+    } finally {
+      idCardElement.style.backgroundImage = originalBackground; // Restore background image
+      downloadButton.style.display = "block";
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     setBackgroundImage(designations[0]?.idcardimage);
   }, [designations]);
   useEffect(() => {
     // Assuming `designations` is an array and you are filtering for a specific event
-    const eventDesignations = designations.find(d => d._id === eventId);
+    const eventDesignations = designations.find((d) => d._id === eventId);
     if (eventDesignations) {
       setamenities(eventDesignations.amenities || {});
     }
   }, [designations, eventId]);
-  
 
   console.log("backgroundImage", backgroundImage);
   const barcodeRef = useRef(null);
@@ -176,7 +254,9 @@ const [isLoading, setIsLoading] = useState(false);
   // Function to fetch designations from API
   const fetchDesignations = async (eventId) => {
     try {
-      const response = await axios.get(`https://kdemapi.insideoutprojects.in/api/events`);
+      const response = await axios.get(
+        `https://kdemapi.insideoutprojects.in/api/events`
+      );
       const filteredDesignations = response.data.filter(
         (categories) => categories._id === eventId
       );
@@ -195,17 +275,75 @@ const [isLoading, setIsLoading] = useState(false);
 
   const toggleModal = () => {
     setModal(!modal);
-    fetchDesignations(eventId); 
+    fetchDesignations(eventId);
   };
 
   const handleNavigate = () => {
     navigate(`/bulk-create-id?eventid=${eventId}&eventName=${eventName}`);
   };
+  const handleNavigatearchive = () => {
+    navigate(`/archive-id-card?eventid=${eventId}&eventName=${eventName}`);
+  };
+
+  const WebcamCapture = ({ onCapture }) => {
+    const webcamRef = useRef(null);
+    const [capturing, setCapturing] = useState(false);
+
+    const capture = useCallback(() => {
+      const imageSrc = webcamRef.current.getScreenshot();
+      onCapture(imageSrc);
+      setCapturing(false);
+    }, [webcamRef, onCapture]);
+
+    return (
+      <div className="border p-2 bg-gray-600  rounded text-center">
+        {capturing ? (
+          <div>
+            <Webcam
+              audio={false}
+              ref={webcamRef}
+              screenshotFormat="image/jpeg"
+              width="100%"
+            />
+            <button
+              className="bg-gray-300 hover:bg-gray-500 px-2 mt-2 rounded  txt-white "
+              onClick={capture}
+            >
+              Capture
+            </button>
+          </div>
+        ) : (
+          <div
+            onClick={() => setCapturing(true)}
+            className=" flex justify-center text-center items-center gap-2 cursor-pointer  font-semibold  text-white text-lg  "
+          >
+            <button className="flex items-center gap-2 ">
+              {" "}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                fill="currentColor"
+                class="bi bi-camera "
+                viewBox="0 0 16 16"
+              >
+                <path d="M15 12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h1.172a3 3 0 0 0 2.12-.879l.83-.828A1 1 0 0 1 6.827 3h2.344a1 1 0 0 1 .707.293l.828.828A3 3 0 0 0 12.828 5H14a1 1 0 0 1 1 1zM2 4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-1.172a2 2 0 0 1-1.414-.586l-.828-.828A2 2 0 0 0 9.172 2H6.828a2 2 0 0 0-1.414.586l-.828.828A2 2 0 0 1 3.172 4z" />
+                <path d="M8 11a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5m0 1a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7M3 6.5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0" />
+              </svg>
+              Take Picture
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  };
   return (
     <div>
       <header className="sticky top-0 z-50 w-full bg-gray-200 shadow-sm">
         <div className="flex h-16 mx-auto items-center justify-between px-4 lg:px-[80px]">
-          <a className="flex items-center gap-2" href="/event" rel="ugc">
+          <div className="hidden lg:block">
+        
+          <a className="flex items-center  gap-2" href="/event" rel="ugc">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="24"
@@ -223,11 +361,12 @@ const [isLoading, setIsLoading] = useState(false);
               <rect width="18" height="18" x="3" y="4" rx="2"></rect>
               <path d="M3 10h18"></path>
             </svg>
-            <span className="font-bold tracking-tight">
+            <span className="font-bold tracking-tight ">
               Event ID Card Generator App
             </span>
           </a>
-          <div className="flex gap-10">
+          </div>
+          <div className="flex lg:gap-10 gap-4">
             <button
               onClick={toggleModal}
               className="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium bg-black text-white transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-9 rounded-md px-3"
@@ -239,6 +378,12 @@ const [isLoading, setIsLoading] = useState(false);
               className="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium bg-black text-white transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-9 rounded-md px-3"
             >
               Bulk Create
+            </button>
+            <button
+              onClick={handleNavigatearchive}
+              className="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium bg-black text-white transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-9 rounded-md px-3"
+            >
+              Archive ID Card
             </button>
           </div>
         </div>
@@ -282,7 +427,7 @@ const [isLoading, setIsLoading] = useState(false);
                     <span className="sr-only">Close modal</span>
                   </button>
                 </div>
-                <div className="w-full max-w-2xl mx-auto py-5 px-4 sm:px-6 lg:px-8 overflow-y-auto max-h-[500px] sm:max-h-screen">
+                <div className="w-full max-w-2xl mx-auto py-5 px-4 sm:px-6 lg:px-8 overflow-y-auto h-[450px] sm:max-h-screen">
                   <div className="space-y-6">
                     <form className="space-y-6" onSubmit={handleSubmit}>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -373,23 +518,28 @@ const [isLoading, setIsLoading] = useState(false);
                         </div>
                       </div>
 
-                      <div>
-                        <label
-                          htmlFor="profilePicture"
-                          className="block text-sm font-medium text-gray-700"
-                        >
-                          Upload Profile Picture
-                        </label>
-                        <div className="mt-1">
-                          <input
-                            type="file"
-                            id="profilePicture"
-                            name="profilePicture"
-                            className="file:hidden"
-                            accept="image/*"
-                            onChange={handleImageChange}
-                          />
-                        </div>
+                      <div className="grid lg:grid-cols-2 gap-6 ">
+                        <input
+                          className="border p-2 rounded"
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) =>
+                            handleFileChange(e, setBackgroundImage)
+                          }
+                          disabled={isWebcamEnabled}
+                        />
+                        <WebcamCapture onCapture={handleCapture} />
+                        {profilePicture && (
+                          <div className="text-center ">
+                            <img
+                              src={URL.createObjectURL(profilePicture)}
+                              alt="Profile"
+                            />
+                            <button type="button " className="border bg-red-700 font-bold text-white    px-2 mt-1 rounded " onClick={handleRemovePicture}>
+                              Remove Picture
+                            </button>
+                          </div>
+                        )}
                       </div>
                       <div className="flex justify-between gap-5">
                         <button
@@ -448,14 +598,15 @@ const [isLoading, setIsLoading] = useState(false);
         </div>
       ) : (
         <div className="my-10">
-          <div className="px-20 mb-10 font-bold text-2xl">
-            {eventName} Event All ID Cards
-          </div>
+          
           <IdCardrender
             fetchData={fetchData}
             isLoading={isLoading}
             Dataid={Dataid}
+            eventName={eventName}
             handleDownload={handleDownload}
+            handleDownloadAll={handleDownloadAll}
+            handleDownloadWithoutBackground={handleDownloadWithoutBackground}
           />
         </div>
       )}
