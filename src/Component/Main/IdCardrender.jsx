@@ -139,7 +139,7 @@ const IdCard = ({
     }).then((result) => {
       if (result.isConfirmed) {
         axios
-          .patch(`http://localhost:5000/api/participants/archive/${id}`, {
+          .patch(`https://kdemapi.insideoutprojects.in/api/participants/archive/${id}`, {
             archive: true,
           }) // PATCH request to archive participant
           .then((res) => {

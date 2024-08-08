@@ -86,7 +86,7 @@ function EventPage() {
       }
 
       const response = await axios.post(
-        "http://localhost:5000/api/events",
+        "https://kdemapi.insideoutprojects.in/api/events",
         formData,
         {
           headers: {
@@ -120,7 +120,7 @@ function EventPage() {
 
   const fetchEvents = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/api/events");
+      const response = await axios.get("https://kdemapi.insideoutprojects.in/api/events");
       setEvents(response.data);
       setLoading(false);
     } catch (error) {
@@ -132,7 +132,7 @@ function EventPage() {
 
   const fetchData = async () => {
     try {
-      const url = `http://localhost:5000/api/participants/event/${eventId}`;
+      const url = `https://kdemapi.insideoutprojects.in/api/participants/event/${eventId}`;
       const response = await axios.get(url);
       console.log("Participants by EventId:", response.data); // Log fetched participants
       setDataid(response.data); // Update state with fetched data
@@ -191,7 +191,7 @@ function EventPage() {
     }).then((result) => {
       if (result.isConfirmed) {
         axios
-          .patch(`http://localhost:5000/api/events/archive/${id}`, {
+          .patch(`https://kdemapi.insideoutprojects.in/api/events/archive/${id}`, {
             archive: true,
           })
           .then((res) => {

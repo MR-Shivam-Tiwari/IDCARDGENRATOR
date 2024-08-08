@@ -16,7 +16,7 @@ function EditParticipant({ toggleModal, id, eventId, fetchData, data }) {
     setLoading(true);
     try {
       const response = await axios.get(
-        `http://localhost:5000/api/events`
+        `https://kdemapi.insideoutprojects.in/api/events`
       );
       const event = response.data.find((event) => event._id === eventId);
       if (event) {
@@ -65,7 +65,7 @@ function EditParticipant({ toggleModal, id, eventId, fetchData, data }) {
 
     try {
       await axios.put(
-        `http://localhost:5000/api/participants/participant/${id}`,
+        `https://kdemapi.insideoutprojects.in/api/participants/participant/${id}`,
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },

@@ -23,7 +23,7 @@ function ArchiveIDCard() {
 
   const fetchData = async (eventId) => {
     try {
-      const url = `http://localhost:5000/api/participants/participentarchive/${eventId}`;
+      const url = `https://kdemapi.insideoutprojects.in/api/participants/participentarchive/${eventId}`;
       const response = await axios.get(url);
       console.log("Participants by EventId:", response.data); // Log fetched participants
       setData(response.data); // Update state with fetched data
@@ -47,7 +47,7 @@ function ArchiveIDCard() {
     }).then((result) => {
       if (result.isConfirmed) {
         axios
-          .patch(`http://localhost:5000/api/participants/unarchive/${id}`, {
+          .patch(`https://kdemapi.insideoutprojects.in/api/participants/unarchive/${id}`, {
             archive: false,
           }) // PATCH request to unarchive participant
           .then((res) => {
