@@ -19,7 +19,7 @@ const BulkUploadForm = () => {
   const [amenities, setamenities] = useState(null);
   const fetchDesignations = async (eventId) => {
     try {
-      const response = await axios.get(`https://kdemapi.insideoutprojects.in/api/events`);
+      const response = await axios.get(`http://localhost:5000/api/events`);
       const filteredDesignations = response.data.find(
         (event) => event._id === eventId
       );
@@ -108,7 +108,7 @@ const BulkUploadForm = () => {
         }
 
         const response = await axios.post(
-          "https://kdemapi.insideoutprojects.in/api/participants/bulk-upload",
+          "http://localhost:5000/api/participants/bulk-upload",
           formData,
           {
             headers: {

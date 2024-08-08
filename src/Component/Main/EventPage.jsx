@@ -2,14 +2,18 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Swal from "sweetalert2";
-import defaultimage from "./event.jpg";
 import { toast } from "react-toastify";
+import EditEvents from "./Edit/EditEvents";
 function EventPage() {
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [Dataid, setDataid] = useState("");
   const toggleModal = () => {
     setShowModal(!showModal);
+  };
+  const toggleEditModal = () => {
+    setShowEditModal(!showEditModal);
   };
   const [inputs, setInputs] = useState([]);
   const [currentInput, setCurrentInput] = useState("");
@@ -82,7 +86,7 @@ function EventPage() {
       }
 
       const response = await axios.post(
-        "https://kdemapi.insideoutprojects.in/api/events",
+        "http://localhost:5000/api/events",
         formData,
         {
           headers: {
@@ -116,7 +120,7 @@ function EventPage() {
 
   const fetchEvents = async () => {
     try {
-      const response = await axios.get("https://kdemapi.insideoutprojects.in/api/events");
+      const response = await axios.get("http://localhost:5000/api/events");
       setEvents(response.data);
       setLoading(false);
     } catch (error) {
@@ -128,7 +132,7 @@ function EventPage() {
 
   const fetchData = async () => {
     try {
-      const url = `https://kdemapi.insideoutprojects.in/api/participants/event/${eventId}`;
+      const url = `http://localhost:5000/api/participants/event/${eventId}`;
       const response = await axios.get(url);
       console.log("Participants by EventId:", response.data); // Log fetched participants
       setDataid(response.data); // Update state with fetched data
@@ -187,7 +191,7 @@ function EventPage() {
     }).then((result) => {
       if (result.isConfirmed) {
         axios
-          .patch(`https://kdemapi.insideoutprojects.in/api/events/archive/${id}`, {
+          .patch(`http://localhost:5000/api/events/archive/${id}`, {
             archive: true,
           })
           .then((res) => {
@@ -696,36 +700,72 @@ function EventPage() {
                     className="relative h-64 cursor-pointer overflow-hidden rounded-lg"
                   >
                     <img
-                      src={event.photoUrl || "https://www.cvent.com/sites/default/files/styles/focus_scale_and_crop_800x450/public/image/2019-10/48980241783_2b57e5f535_k.jpg?h=a1e1a043&itok=TvObf6VQ"}
+                      src={
+                        event.photoUrl ||
+                        "https://www.cvent.com/sites/default/files/styles/focus_scale_and_crop_800x450/public/image/2019-10/48980241783_2b57e5f535_k.jpg?h=a1e1a043&itok=TvObf6VQ"
+                      }
                       alt={event.eventName}
                       className="w-full h-full object-cover"
                       width="600"
                       height="400"
                       style={{ aspectRatio: "600/400", objectFit: "cover" }}
-                    
                     />
 
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent p-4">
                       <div className="flex gap-4 justify-between">
-                        <button className="bg-yellow-400 text-black py-4  p-3 h-6 shadow-full flex items-center rounded-full font-bold">
-                        {event.participantCount}
+                        <button className="bg-orange-600 text-white py-4  p-3 h-6 shadow-full flex items-center rounded-full font-bold">
+                          {event.participantCount}
                         </button>
                         <div className="flex gap-3">
+                          <button
+                            onClick={toggleEditModal}
+                            className=" text-white p-3 bg-orange-600 rounded-full hover:bg-gray-400"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="20"
+                              height="20"
+                              fill="currentColor"
+                              class="bi bi-pencil-square"
+                              viewBox="0 0 16 16"
+                            >
+                              <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z" />
+                              <path
+                                fill-rule="evenodd"
+                                d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"
+                              />
+                            </svg>
+                          </button>
+
+                          <button
+                            onClick={() => handleDelete(event._id)}
+                            className="text-white p-3 bg-orange-600 rounded-full hover:bg-gray-400"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="20"
+                              height="20"
+                              fill="currentColor"
+                              class="bi bi-trash3"
+                              viewBox="0 0 16 16"
+                            >
+                              <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47M8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5" />
+                            </svg>
+                          </button>
                           <button
                             onClick={() =>
                               handleTaskView(event._id, event.eventName)
                             }
-                            className="bg-orange-600 text-white px-5 p-2 rounded font-bold hover:bg-blue-700"
+                            className=" p-3 bg-orange-600 font-bold text-white rounded  hover:bg-gray-400"
                           >
-                            View
-                          </button>
-                          <button
-                            onClick={() => handleDelete(event._id)}
-                            className="bg-gray-600 text-white px-5 p-2 rounded font-bold hover:bg-blue-700"
-                          >
-                            Archive
+                            View Tasks
                           </button>
                         </div>
+                        {showEditModal && (
+                          <div>
+                            <EditEvents fetchEvents={fetchEvents} toggleEditModal={toggleEditModal} event={event} />
+                          </div>
+                        )}
                       </div>
                       <div className="flex h-full flex-col justify-end">
                         <h3 className="text-3xl mb-1 font-bold text-white">
@@ -763,7 +803,7 @@ function EventPage() {
                               {new Date(event.endDate).toDateString()}
                             </span>
                           </div>
-                          <div className="font-semibold border mt-2 p-1 gap-2 flex  items-center px-2 rounded-sm bg-slate-200 text-black">
+                          <div className="font-semibold border my-2 p-1 gap-2 flex  items-center px-2 rounded-sm bg-slate-200 text-black">
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
                               width="24"

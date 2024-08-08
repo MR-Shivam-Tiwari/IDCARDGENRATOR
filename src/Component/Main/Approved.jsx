@@ -13,7 +13,7 @@ function Approved() {
     const fetchParticipant = async () => {
       try {
         const response = await axios.get(
-          `https://kdemapi.insideoutprojects.in/api/participants/participant/${participantId}`
+          `http://localhost:5000/api/participants/participant/${participantId}`
         );
         setParticipant(response.data);
         setLoading(false);
@@ -40,7 +40,7 @@ function Approved() {
   const saveAmenities = async () => {
     try {
       const response = await axios.put(
-        `https://kdemapi.insideoutprojects.in/api/participants/participant/${participantId}/amenities`,
+        `http://localhost:5000/api/participants/participant/${participantId}/amenities`,
         {
           amenities: participant.amenities,
         }

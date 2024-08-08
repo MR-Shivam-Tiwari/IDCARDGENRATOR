@@ -67,57 +67,61 @@ function ArchiveIDCard() {
   const reversedData = [...filteredData].reverse();
 
   return (
-    <div className="flex flex-wrap container mx-auto p-10 justify-center gap-5">
-      {loading ? (
-        <p>Loading...</p>
-      ) : (
-        reversedData.map((card, index) => (
-          <div
-            key={`id-card-${index}`} // Added key prop for each card
-            className="relative rounded-[1px] h-[580px] w-[430px]"
-            style={{
-              backgroundImage: `url(${card.backgroundImage})`,
-              backgroundSize: "contain",
-              backgroundPosition: "center",
-              backgroundRepeat: "no-repeat",
-              imageRendering: "crisp-edges",
-            }}
-          >
-            <div className="relative z-10 flex justify-center h-full text-white">
-              <div className="overflow-hidden flex-col justify-center lg:mt-[200px] mt-[242px] border-white">
-                <h2 className="text-lg text-center mb-2 font-bold">
-                  {card.firstName} {card.lastName}
-                </h2>
-                <div className="flex justify-center">
-                  <img
-                    src={card.profilePicture}
-                    style={{ objectFit: "cover" }}
-                    alt="Profile"
-                    className="lg:h-[150px] rounded-[2px] lg:w-[150px] h-[140px] w-[140px]"
-                  />
-                </div>
-                <p className="lg:text-xl text-[12px] font-semibold mt-2 text-center">
-                  {card.institute}
-                </p>
-                <p className="font-bold mt-6 text-[15px] mb-[2px] text-black text-center">
-                  {card.designation}
-                </p>
-                <div className="text-black text-[15px] text-center font-bold">
-                  {card.participantId}
+    <div className="container mx-auto text-3xl font-bold my-7 ">
+      Archive ID Cards...
+      <div className="flex flex-wrap container mx-auto p-10 justify-center gap-5">
+        <div></div>
+        {loading ? (
+          <p>Loading...</p>
+        ) : (
+          reversedData.map((card, index) => (
+            <div
+              key={`id-card-${index}`} // Added key prop for each card
+              className="relative rounded-[1px] h-[580px] w-[430px]"
+              style={{
+                backgroundImage: `url(${card.backgroundImage})`,
+                backgroundSize: "contain",
+                backgroundPosition: "center",
+                backgroundRepeat: "no-repeat",
+                imageRendering: "crisp-edges",
+              }}
+            >
+              <div className="relative z-10 flex justify-center h-full text-white">
+                <div className="overflow-hidden flex-col justify-center lg:mt-[200px] mt-[242px] border-white">
+                  <h2 className="text-lg text-center mb-2 font-bold">
+                    {card.firstName} {card.lastName}
+                  </h2>
+                  <div className="flex justify-center">
+                    <img
+                      src={card.profilePicture}
+                      style={{ objectFit: "cover" }}
+                      alt="Profile"
+                      className="lg:h-[150px] rounded-[2px] lg:w-[150px] h-[140px] w-[140px]"
+                    />
+                  </div>
+                  <p className="lg:text-xl text-[12px] font-semibold mt-2 text-center">
+                    {card.institute}
+                  </p>
+                  <p className="font-bold mt-6 text-[15px] mb-[2px] text-black text-center">
+                    {card.designation}
+                  </p>
+                  <div className="text-black text-[15px] text-center font-bold">
+                    {card.participantId}
+                  </div>
                 </div>
               </div>
+              <div className="flex justify-center mt-2">
+                <button
+                  onClick={() => handleArchive(card._id)}
+                  className="border rounded bg-gray text-center p-1 px-2 bg-gray-400 hover:bg-slate-600"
+                >
+                  UnArchive
+                </button>
+              </div>
             </div>
-            <div className="flex justify-center mt-2">
-              <button
-                onClick={() => handleArchive(card._id)}
-                className="border rounded bg-gray text-center p-1 px-2 bg-gray-400 hover:bg-slate-600"
-              >
-                UnArchive
-              </button>
-            </div>
-          </div>
-        ))
-      )}
+          ))
+        )}
+      </div>
     </div>
   );
 }

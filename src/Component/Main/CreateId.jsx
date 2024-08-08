@@ -51,7 +51,7 @@ function CreateId() {
 
   const fetchData = async () => {
     try {
-      const url = `https://kdemapi.insideoutprojects.in/api/participants/event/${eventId}`;
+      const url = `http://localhost:5000/api/participants/event/${eventId}`;
       const response = await axios.get(url);
       console.log("Participants by EventId:", response.data); // Log fetched participants
       setDataid(response.data); // Update state with fetched data
@@ -121,7 +121,7 @@ function CreateId() {
 
       // Send POST request
       const response = await axios.post(
-        "https://kdemapi.insideoutprojects.in/api/participants",
+        "http://localhost:5000/api/participants",
         formData,
         {
           headers: {
@@ -255,7 +255,7 @@ function CreateId() {
   const fetchDesignations = async (eventId) => {
     try {
       const response = await axios.get(
-        `https://kdemapi.insideoutprojects.in/api/events`
+        `http://localhost:5000/api/events`
       );
       const filteredDesignations = response.data.filter(
         (categories) => categories._id === eventId
@@ -607,6 +607,8 @@ function CreateId() {
             handleDownload={handleDownload}
             handleDownloadAll={handleDownloadAll}
             handleDownloadWithoutBackground={handleDownloadWithoutBackground}
+            fetchDesignations={fetchDesignations}
+            eventId={eventId}
           />
         </div>
       )}
