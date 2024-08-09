@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-function EditEvents({ toggleEditModal, event, fetchEvents }) {
+function EditEvents({ toggleEditModal, event, fetchEvents, id, onClose }) {
   const [eventName, setEventName] = useState(event.eventName || "");
   const [address, setAddress] = useState(event.address || "");
   const [startDate, setStartDate] = useState(event.startDate || "");
@@ -68,7 +68,7 @@ function EditEvents({ toggleEditModal, event, fetchEvents }) {
 
     try {
       const response = await fetch(
-        `https://kdemapi.insideoutprojects.in/api/events/edit/${event._id}`,
+        `http://localhost:5000/api/events/edit/${event._id}`,
         {
           method: "PATCH",
           body: formData,
@@ -80,7 +80,7 @@ function EditEvents({ toggleEditModal, event, fetchEvents }) {
 
       if (response.ok) {
         console.log("Event updated successfully");
-        toggleEditModal();
+        onClose();
         fetchEvents();
       } else {
         console.error("Error updating event:", await response.text());
@@ -104,12 +104,14 @@ function EditEvents({ toggleEditModal, event, fetchEvents }) {
           <div className="relative bg-white rounded-lg shadow">
             <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Update Event</h1>
+                <h1 className="text-3xl font-bold text-gray-900">
+                  Update Event
+                </h1>
               </div>
               <button
                 type="button"
                 className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center"
-                onClick={toggleEditModal}
+                onClick={onClose}
               >
                 <svg
                   className="w-3 h-3"

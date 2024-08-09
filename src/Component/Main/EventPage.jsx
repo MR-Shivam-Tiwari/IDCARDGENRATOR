@@ -7,13 +7,14 @@ import EditEvents from "./Edit/EditEvents";
 function EventPage() {
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
   const [Dataid, setDataid] = useState("");
   const toggleModal = () => {
     setShowModal(!showModal);
   };
-  const toggleEditModal = () => {
-    setShowEditModal(!showEditModal);
+  const [showEditModal, setActiveEventId] = useState(null); // State to track which event's modal is open
+
+  const toggleEditModal = (eventId) => {
+    setActiveEventId(eventId);
   };
   const [inputs, setInputs] = useState([]);
   const [currentInput, setCurrentInput] = useState("");
@@ -120,7 +121,9 @@ function EventPage() {
 
   const fetchEvents = async () => {
     try {
-      const response = await axios.get("https://kdemapi.insideoutprojects.in/api/events");
+      const response = await axios.get(
+        "https://kdemapi.insideoutprojects.in/api/events"
+      );
       setEvents(response.data);
       setLoading(false);
     } catch (error) {
@@ -191,9 +194,12 @@ function EventPage() {
     }).then((result) => {
       if (result.isConfirmed) {
         axios
-          .patch(`https://kdemapi.insideoutprojects.in/api/events/archive/${id}`, {
-            archive: true,
-          })
+          .patch(
+            `https://kdemapi.insideoutprojects.in/api/events/archive/${id}`,
+            {
+              archive: true,
+            }
+          )
           .then((res) => {
             Swal.fire("Archived!", "Event has been archived.", "success");
             fetchEvents(); // Assuming fetchEvents is a function to fetch updated events list
@@ -718,7 +724,7 @@ function EventPage() {
                         </button>
                         <div className="flex gap-3">
                           <button
-                            onClick={toggleEditModal}
+                            onClick={() => toggleEditModal(event._id)}
                             className=" text-white p-3 bg-orange-600 rounded-full hover:bg-gray-400"
                           >
                             <svg
@@ -761,9 +767,13 @@ function EventPage() {
                             View Tasks
                           </button>
                         </div>
-                        {showEditModal && (
-                          <div>
-                            <EditEvents fetchEvents={fetchEvents} toggleEditModal={toggleEditModal} event={event} />
+                        {showEditModal === event._id && (
+                          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                            <EditEvents
+                              event={event}
+                              onClose={() => setActiveEventId(null)}
+                              fetchEvents={fetchEvents}
+                            />
                           </div>
                         )}
                       </div>
