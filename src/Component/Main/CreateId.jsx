@@ -11,6 +11,7 @@ import JsBarcode from "jsbarcode";
 function CreateId() {
   const location = useLocation();
   const [modal, setModal] = useState(false);
+  const [linkmodal, setlinkmodal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -27,7 +28,14 @@ function CreateId() {
   const [backgroundImage, setBackgroundImage] = useState(null);
   const [amenities, setamenities] = useState(null);
   const [profilePicture, setProfilePicture] = useState(null);
+  const [copySuccess, setCopySuccess] = useState("");
 
+  const handleCopy = () => {
+    navigator.clipboard
+      .writeText(generatedLink)
+      .then(() => setCopySuccess("Copied!"))
+      .catch(() => setCopySuccess("Failed to copy!"));
+  };
   const handleImageChange = (event) => {
     const { id, files } = event.target;
     if (files && files[0]) {
@@ -172,47 +180,50 @@ function CreateId() {
   const handleDownloadAll = async (data) => {
     setIsLoading(true);
     const zip = new JSZip();
-  
+
     for (let index = 0; index < data.length; index++) {
       const card = data[index];
       const idCardElement = document.getElementById(`id-card-${index}`);
-  
+
       if (!idCardElement) {
         console.error("Element not found", index);
         continue;
       }
-  
+
       try {
-        const dataUrl = await toPng(idCardElement, { quality: 1, pixelRatio: 4 });
+        const dataUrl = await toPng(idCardElement, {
+          quality: 1,
+          pixelRatio: 4,
+        });
         const base64Data = dataUrl.split("base64,")[1];
         zip.file(`id-card-${index + 1}.png`, base64Data, { base64: true });
       } catch (error) {
         console.error("Error generating PNG:", error, index);
       }
     }
-  
+
     zip.generateAsync({ type: "blob" }).then((content) => {
       saveAs(content, "id-cards.zip");
       setIsLoading(false);
     });
   };
-  
+
   const handleDownloadWithoutBackground = async (index) => {
     setIsLoading(true);
     const idCardElement = document.getElementById(`id-card-${index}`);
     const downloadButton = document.getElementById(`download-button-${index}`);
-  
+
     if (!idCardElement || !downloadButton) {
       console.error("Element not found");
       setIsLoading(false);
       return;
     }
-  
+
     const originalBackground = idCardElement.style.backgroundImage;
     idCardElement.style.backgroundImage = "none"; // Remove background image
-  
+
     downloadButton.style.display = "none";
-  
+
     try {
       const dataUrl = await toPng(idCardElement, { quality: 1, pixelRatio: 4 });
       const link = document.createElement("a");
@@ -277,12 +288,18 @@ function CreateId() {
     setModal(!modal);
     fetchDesignations(eventId);
   };
+  const toggleLinkModal = () => {
+    setlinkmodal(!linkmodal);
+  };
 
   const handleNavigate = () => {
     navigate(`/bulk-create-id?eventid=${eventId}&eventName=${eventName}`);
   };
   const handleNavigatearchive = () => {
     navigate(`/archive-id-card?eventid=${eventId}&eventName=${eventName}`);
+  };
+  const handleEmbed = () => {
+    navigate(`/form-url?eventid=${eventId}&eventName=${eventName}`);
   };
 
   const WebcamCapture = ({ onCapture }) => {
@@ -337,36 +354,61 @@ function CreateId() {
       </div>
     );
   };
+
+  const [generatedLink, setGeneratedLink] = useState("");
+
+  const handleGenerateLink = async () => {
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/api/participants/generate-token",
+        {
+          eventId,
+          eventName,
+        }
+      );
+      const token = response.data.token;
+      const link = `${window.location.origin}/form-url?eventid=${eventId}&eventName=${eventName}&token=${token}`;
+      setGeneratedLink(link);
+    } catch (error) {
+      console.error("Error generating link:", error);
+    }
+  };
+
   return (
     <div>
       <header className="sticky top-0 z-50 w-full bg-gray-200 shadow-sm">
         <div className="flex h-16 mx-auto items-center justify-between px-4 lg:px-[80px]">
           <div className="hidden lg:block">
-        
-          <a className="flex items-center  gap-2" href="/event" rel="ugc">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="h-6 w-6"
-            >
-              <path d="M8 2v4"></path>
-              <path d="M16 2v4"></path>
-              <rect width="18" height="18" x="3" y="4" rx="2"></rect>
-              <path d="M3 10h18"></path>
-            </svg>
-            <span className="font-bold tracking-tight ">
-              Event ID Card Generator App
-            </span>
-          </a>
+            <a className="flex items-center  gap-2" href="/event" rel="ugc">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="h-6 w-6"
+              >
+                <path d="M8 2v4"></path>
+                <path d="M16 2v4"></path>
+                <rect width="18" height="18" x="3" y="4" rx="2"></rect>
+                <path d="M3 10h18"></path>
+              </svg>
+              <span className="font-bold tracking-tight ">
+                Event ID Card Generator App
+              </span>
+            </a>
           </div>
           <div className="flex lg:gap-10 gap-4">
+            <button
+              onClick={() => toggleLinkModal()}
+              className="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium bg-black text-white transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-9 rounded-md px-3"
+            >
+              Embed Form
+            </button>
             <button
               onClick={toggleModal}
               className="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium bg-black text-white transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-9 rounded-md px-3"
@@ -388,6 +430,104 @@ function CreateId() {
           </div>
         </div>
       </header>
+      {linkmodal && (
+        <div
+          id="default-modal"
+          tabIndex="-1"
+          aria-hidden="true"
+          className="fixed inset-0 z-50 flex items-center justify-center w-full h-full bg-black bg-opacity-50"
+        >
+          <div className="relative p-4 w-full max-w-2xl max-h-full">
+            <div className="relative bg-white rounded-lg shadow">
+              <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t">
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-900">
+                    Create Form Url
+                  </h1>
+                </div>
+                <button
+                  type="button"
+                  className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center"
+                  onClick={toggleLinkModal}
+                >
+                  <svg
+                    className="w-3 h-3"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 14 14"
+                  >
+                    <path
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M1 1l6 6m0 0l6 6M7 7l6-6M7 7l-6 6"
+                    />
+                  </svg>
+                  <span className="sr-only">Close modal</span>
+                </button>
+              </div>
+              <div className="w-full max-w-2xl mx-auto py-5 px-4 sm:px-6 lg:px-8 overflow-y-auto  sm:max-h-screen">
+                <div className="space-y-6">
+                  <h2 className="text-center">Generate Secure Form Link</h2>
+                  <div className="border p-2 ">
+                    Event ID :-
+                    <input
+                      type="text"
+                      placeholder="Event ID"
+                      value={eventId}
+                      onChange={(e) => setEventId(e.target.value)}
+                    />
+                  </div>
+                  <div className="border p-2 ">
+                    Event Name :-
+                    <input
+                      type="text"
+                      placeholder="Event Name"
+                      value={eventName}
+                      onChange={(e) => setEventName(e.target.value)}
+                    />{" "}
+                  </div>
+                  <div className="flex justify-center  ">
+
+                  <button className="bg-blue-500 font-bold text-white p-2 px-4 rounded-md  hover:bg-blue-600" onClick={handleGenerateLink}>Generate Link</button>
+                  </div>
+
+                  {generatedLink && (
+                    <div className="border w-full shadow rounded  text-wrap overflow-auto p-4">
+                      <h3>Generated Link:</h3>
+                      <a
+                        href={generatedLink}
+                        target="_blank"
+                        className="text-wrap block truncate "
+                        rel="noopener noreferrer"
+                      >
+                        {generatedLink}
+                      </a>
+                      <div className="flex  justify-center">
+                        <div className="">
+                          <button
+                            onClick={handleCopy}
+                            className="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                          >
+                            Copy Link
+                          </button>
+                          {copySuccess && (
+                            <p className="mt-2 text-green-500 text-center">
+                              {copySuccess}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       {modal && (
         <div>
           <div
@@ -535,7 +675,11 @@ function CreateId() {
                               src={URL.createObjectURL(profilePicture)}
                               alt="Profile"
                             />
-                            <button type="button " className="border bg-red-700 font-bold text-white    px-2 mt-1 rounded " onClick={handleRemovePicture}>
+                            <button
+                              type="button "
+                              className="border bg-red-700 font-bold text-white    px-2 mt-1 rounded "
+                              onClick={handleRemovePicture}
+                            >
                               Remove Picture
                             </button>
                           </div>
@@ -598,7 +742,6 @@ function CreateId() {
         </div>
       ) : (
         <div className="my-10">
-          
           <IdCardrender
             fetchData={fetchData}
             isLoading={isLoading}

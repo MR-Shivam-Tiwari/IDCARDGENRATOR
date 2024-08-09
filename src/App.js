@@ -10,6 +10,7 @@ import Login from './Component/Auth/Login';
 import PrivateRoute from './PrivateRoute';
 import { ToastContainer } from 'react-toastify';
 import ArchiveIDCard from './Component/Main/Archive/ArchiveIDCard';
+import EmbedForm from './Component/Main/EmbedFOrm/EmbedForm';
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
             <Route path="/archive-event" element={<PrivateRoute element={ArchiveEvent} />} />
             <Route path="/approve/:participantId" element={<PrivateRoute element={Approved} />} />
             <Route path="/archive-id-card" element={<PrivateRoute element={ArchiveIDCard} />} />
+            <Route path="/form-url" element={<EmbedForm />} />
           </Routes>
         </div>
       </Router>
