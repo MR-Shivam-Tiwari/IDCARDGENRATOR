@@ -360,7 +360,7 @@ function CreateId() {
   const handleGenerateLink = async () => {
     try {
       const response = await axios.post(
-        "http://localhost:5000/api/participants/generate-token",
+        "https://kdemapi.insideoutprojects.in/api/participants/generate-token",
         {
           eventId,
           eventName,
