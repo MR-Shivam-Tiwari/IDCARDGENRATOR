@@ -1,12 +1,12 @@
 import React, { useRef, useState } from "react";
 import Swal from "sweetalert2";
 import axios from "axios";
-import QRCode from "qrcode.react"; // Import the QR code component
+import QRCode from "qrcode.react";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import { toPng } from "html-to-image";
-import domtoimage from "dom-to-image";
 import EditParticipent from "./Edit/EditParticipent";
+
 function IdCardrender({
   Dataid,
   fetchData,
@@ -16,7 +16,16 @@ function IdCardrender({
   eventId,
 }) {
   const [loading, setLoading] = useState(false);
-  const [modal, setModal] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [globalVisibility, setGlobalVisibility] = useState({
+    name: true,
+    profilePicture: true,
+    institute: true,
+    designation: true,
+    qrCode: true,
+    participantId: true,
+  });
+
   if (!Array.isArray(Dataid) || Dataid.length === 0) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -28,6 +37,7 @@ function IdCardrender({
   }
 
   const reversedData = [...Dataid].reverse();
+
   const downloadAllImagesAsZip = () => {
     setLoading(true);
     const zip = new JSZip();
@@ -52,49 +62,78 @@ function IdCardrender({
       });
     });
   };
+
+  const toggleModalOpen = () => {
+    setIsModalOpen(!isModalOpen);
+  };
+
+  const toggleGlobalVisibility = (field) => {
+    setGlobalVisibility(prev => ({ ...prev, [field]: !prev[field] }));
+  };
+
   return (
-    <div className="">
-      <div className="grid   lg:grid-cols-2  lg:px-20 px-4 gap-3 lg:mb-20 mb-5">
-        <div className="lg:px-20  font-bold text-[23px]">
-          {eventName} Event All ID Cards
-        </div>
-        <div className="flex justify-end">
+    <div className="container mx-auto p-4">
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold">{eventName} Event All ID Cards</h1>
+        <div className="flex gap-4">
           <button
-            className="border text-white font-bold px-4 py-2 rounded-md bg-blue-400 flex items-center"
+            className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+            onClick={toggleModalOpen}
+          >
+            Edit All ID Cards
+          </button>
+          <button
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded flex items-center"
             onClick={downloadAllImagesAsZip}
             disabled={loading}
           >
             {loading ? (
-              <div className="flex gap-2">
+              <>
                 Wait...
-                <svg
-                  className="animate-spin h-5 w-5 mr-3 text-black"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.963 7.963 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
+                <svg className="animate-spin h-5 w-5 ml-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.963 7.963 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-              </div>
+              </>
             ) : (
               "Download All as ZIP"
             )}
           </button>
         </div>
       </div>
-      <div className="flex flex-wrap justify-center gap-10 lg:px-20 container mx-auto ">
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-lg max-w-sm w-full">
+            <h2 className="text-xl font-bold mb-4">Edit All ID Cards Visibility</h2>
+            <div className="space-y-4">
+              {Object.entries(globalVisibility).map(([key, value]) => (
+                <div key={key} className="flex items-center justify-between">
+                  <span className="capitalize">{key}</span>
+                  <div className="flex items-center">
+                    <span className="mr-2 text-sm">{value ? 'Show' : 'Hide'}</span>
+                    <label className="switch">
+                      <input
+                        type="checkbox"
+                        checked={value}
+                        onChange={() => toggleGlobalVisibility(key)}
+                      />
+                      <span className="slider round"></span>
+                    </label>
+                    <span className="ml-2 text-sm">{value ? 'Hide' : 'Show'}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <button 
+              onClick={toggleModalOpen}
+              className="mt-6 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+      <div className="flex flex-wrap justify-center gap-10">
         {reversedData.map((card, index) => (
           <IdCard
             key={index}
@@ -104,9 +143,55 @@ function IdCardrender({
             isLoading={isLoading}
             fetchDesignations={fetchDesignations}
             eventId={eventId}
+            globalVisibility={globalVisibility}
           />
         ))}
       </div>
+      <style jsx>{`
+        .switch {
+          position: relative;
+          display: inline-block;
+          width: 60px;
+          height: 34px;
+        }
+        .switch input {
+          opacity: 0;
+          width: 0;
+          height: 0;
+        }
+        .slider {
+          position: absolute;
+          cursor: pointer;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background-color: #ccc;
+          transition: .4s;
+        }
+        .slider:before {
+          position: absolute;
+          content: "";
+          height: 26px;
+          width: 26px;
+          left: 4px;
+          bottom: 4px;
+          background-color: white;
+          transition: .4s;
+        }
+        input:checked + .slider {
+          background-color: #2196F3;
+        }
+        input:checked + .slider:before {
+          transform: translateX(26px);
+        }
+        .slider.round {
+          border-radius: 34px;
+        }
+        .slider.round:before {
+          border-radius: 50%;
+        }
+      `}</style>
     </div>
   );
 }
@@ -118,15 +203,17 @@ const IdCard = ({
   isLoading,
   fetchDesignations,
   eventId,
+  globalVisibility,
 }) => {
   const [modal, setModal] = useState(false);
   const idCardRef = useRef(null);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const toggleModal = () => {
     setModal(!modal);
     fetchDesignations(eventId);
   };
-  console.log("icard id ", card);
+
   const handleDelete = (id) => {
     Swal.fire({
       title: "Archive ID Cards?",
@@ -141,11 +228,10 @@ const IdCard = ({
         axios
           .patch(`https://kdemapi.insideoutprojects.in/api/participants/archive/${id}`, {
             archive: true,
-          }) // PATCH request to archive participant
+          })
           .then((res) => {
             Swal.fire("Archived!", "ID Cards has been archived.", "success");
-            fetchData(); // Assuming fetchData() fetches updated participant list
-            console.log("archived");
+            fetchData();
           })
           .catch((error) => {
             console.log(error);
@@ -156,8 +242,6 @@ const IdCard = ({
 
   const participantUrl = `https://idcardgenrator.vercel.app/approve/${card._id}`;
 
-  const [isDownloading, setIsDownloading] = useState(false);
-
   const downloadImage = () => {
     const element = idCardRef.current;
     if (!element) return;
@@ -166,9 +250,9 @@ const IdCard = ({
 
     toPng(element, {
       cacheBust: true,
-      backgroundColor: null, // Set a background color if needed
-      quality: 1, // Set quality to 1 for maximum
-      pixelRatio: 3, // Increase the pixel ratio for higher resolution
+      backgroundColor: null,
+      quality: 1,
+      pixelRatio: 3,
     })
       .then((dataUrl) => {
         const link = document.createElement("a");
@@ -180,14 +264,14 @@ const IdCard = ({
         console.error("Could not download the image", error);
       })
       .finally(() => {
-        setIsDownloading(false); // End loading
+        setIsDownloading(false);
       });
   };
+
   const downloadImageWithoutBackground = () => {
     const element = idCardRef.current;
     if (!element) return;
 
-    // Temporarily hide the background image
     const originalBackgroundImage = element.querySelector("img").style.display;
     element.querySelector("img").style.display = "none";
 
@@ -195,7 +279,7 @@ const IdCard = ({
 
     toPng(element, {
       cacheBust: true,
-      backgroundColor: null, // Ensure no background color
+      backgroundColor: null,
       quality: 1,
       pixelRatio: 3,
     })
@@ -209,18 +293,17 @@ const IdCard = ({
         console.error("Could not download the image", error);
       })
       .finally(() => {
-        // Restore the original background image display
         element.querySelector("img").style.display = originalBackgroundImage;
         setIsDownloading(false);
       });
   };
 
   return (
-    <div className="relative mb-20 h-[580px] w-[430px] ">
+    <div className="relative mb-20 h-[580px] w-[430px]">
       <div
         ref={idCardRef}
         id={`id-card-${index}`}
-        className="relative   rounded-[1px] h-[580px] w-[430px]   "
+        className="relative rounded-[1px] h-[580px] w-[430px]"
       >
         <div className="relative z-10 flex flex-col items-center justify-center h-full text-white">
           <div className="absolute inset-0">
@@ -230,31 +313,42 @@ const IdCard = ({
               className="w-full h-full object-cover"
             />
           </div>
-          <div className="relative flex flex-col  p-4 mt-[210px]   ">
-            <h2 className="text-[20px] mb-5 font-bold text-center mt-2 text-white">
-              {card.firstName} {card.lastName}
-            </h2>
-            <div className="flex justify-center">
-
-            <img
-              src={card.profilePicture}
-              style={{ objectFit: "cover" }}
-              alt="Profile"
-              className="w-[150px] h-[150px]  rounded-[2px] "
-              />
+          <div className="relative flex flex-col p-4 mt-[210px]">
+            {globalVisibility.name && (
+              <h2 className="text-[20px] mb-5 font-bold text-center mt-2 text-white">
+                {card.firstName} {card.lastName}
+              </h2>
+            )}
+            {globalVisibility.profilePicture && (
+              <div className="flex justify-center">
+                <img
+                  src={card.profilePicture}
+                  style={{ objectFit: "cover" }}
+                  alt="Profile"
+                  className="w-[150px] h-[150px] rounded-[2px]"
+                />
               </div>
-            <p className="text-sm font-semibold text-center text-white mt-1 mb-4">
-              {card.institute}
-            </p>
-            <p className="text-md font-bold text-center text-black">
-              {card.designation}
-            </p>
-            <div className="flex justify-center">
-              <QRCode value={participantUrl} size={85} level="H" />
-            </div>
-            <div className="text-md font-bold text-center text-black">
-              {card.participantId}
-            </div>
+            )}
+            {globalVisibility.institute && (
+              <p className="text-sm font-semibold text-center text-white mt-1 mb-4">
+                {card.institute}
+              </p>
+            )}
+            {globalVisibility.designation && (
+              <p className="text-md font-bold text-center text-black">
+                {card.designation}
+              </p>
+            )}
+            {globalVisibility.qrCode && (
+              <div className="flex justify-center">
+                <QRCode value={participantUrl} size={85} level="H" />
+              </div>
+            )}
+            {globalVisibility.participantId && (
+              <div className="text-md font-bold text-center text-black">
+                {card.participantId}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -269,27 +363,25 @@ const IdCard = ({
             width="20"
             height="20"
             fill="currentColor"
-            class="bi bi-pencil-square"
+            className="bi bi-pencil-square"
             viewBox="0 0 16 16"
           >
             <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z" />
             <path
-              fill-rule="evenodd"
+              fillRule="evenodd"
               d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"
             />
           </svg>
         </button>
         {modal && (
-          <div>
-            <EditParticipent
-              fetchData={fetchData}
-              eventId={eventId}
-              fetchDesignations={fetchDesignations}
-              toggleModal={toggleModal}
-              id={card._id}
-              data={card}
-            />
-          </div>
+          <EditParticipent
+            fetchData={fetchData}
+            eventId={eventId}
+            fetchDesignations={fetchDesignations}
+            toggleModal={toggleModal}
+            id={card._id}
+            data={card}
+          />
         )}
         <button
           onClick={() => handleDelete(card._id)}
@@ -308,33 +400,29 @@ const IdCard = ({
         </button>
         <button
           onClick={downloadImage}
-          id={`download-button-${index}`}
-          className="border text-black p-3 bg-gray-300 rounded-full "
+          className="border text-black p-3 bg-gray-300 rounded-full"
         >
           {isDownloading ? (
-            <div className="flex gap-2">
-              Wait...
-              <svg
-                className="animate-spin h-5 w-5 mr-3 text-black"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                ></circle>
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.963 7.963 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                ></path>
-              </svg>
-            </div>
+            <svg
+              className="animate-spin h-5 w-5 text-black"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.963 7.963 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
           ) : (
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -349,26 +437,33 @@ const IdCard = ({
             </svg>
           )}
         </button>
-
         <button
           onClick={downloadImageWithoutBackground}
-          disabled={isLoading}
-          id={`download-button-${index}`}
-          className="border text-black p-3 bg-gray-300 hover:bg-gray-500 font-semibold rounded "
+          className="border text-black p-3 bg-gray-300 hover:bg-gray-500 font-semibold rounded"
         >
-          {isLoading === index ? (
+          {isDownloading ? (
             <svg
+              className="animate-spin h-5 w-5 text-black"
               xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              fill="currentColor"
-              className="bi bi-arrow-repeat animate-spin"
-              viewBox="0 0 16 16"
+              fill="none"
+              viewBox="0 0 24 24"
             >
-              <path d="M11.534 7h1.932A6.5 6.5 0 1 1 8 1.5V0a7.5 7.5 0 1 0 7.5 7.5h-1.041A6.477 6.477 0 0 1 11.534 7z" />
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.963 7.963 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
             </svg>
           ) : (
-            <div className="flex gap-2  ">
+            <div className="flex gap-2">
               WithoutBackground
               <svg
                 xmlns="http://www.w3.org/2000/svg"
