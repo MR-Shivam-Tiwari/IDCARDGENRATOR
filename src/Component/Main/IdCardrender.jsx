@@ -347,7 +347,7 @@ const IdCard = ({
               </div>
             )}
             {globalVisibility.name && (
-              <h2 className="absolute top-[200px] left-[50%] transform -translate-x-1/2 text-[20px] font-bold text-center mt-2 text-white">
+              <h2 className="absolute top-[200px] left-[50%] transform -translate-x-1/2 text-[20px] font-bold text-center mt-2 w-full text-white">
                 {card.firstName} {card.lastName}
               </h2>
             )}
