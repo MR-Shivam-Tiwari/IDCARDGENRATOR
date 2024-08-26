@@ -68,7 +68,7 @@ function IdCardrender({
   };
 
   const toggleGlobalVisibility = (field) => {
-    setGlobalVisibility(prev => ({ ...prev, [field]: !prev[field] }));
+    setGlobalVisibility((prev) => ({ ...prev, [field]: !prev[field] }));
   };
 
   return (
@@ -90,9 +90,25 @@ function IdCardrender({
             {loading ? (
               <>
                 Wait...
-                <svg className="animate-spin h-5 w-5 ml-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.963 7.963 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                <svg
+                  className="animate-spin h-5 w-5 ml-2"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.963 7.963 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
                 </svg>
               </>
             ) : (
@@ -104,13 +120,14 @@ function IdCardrender({
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-white p-6 rounded-lg max-w-sm w-full">
-            <h2 className="text-xl font-bold mb-4">Edit All ID Cards Visibility</h2>
+            <h2 className="text-xl font-bold mb-4">
+              Edit All ID Cards Visibility
+            </h2>
             <div className="space-y-4">
               {Object.entries(globalVisibility).map(([key, value]) => (
                 <div key={key} className="flex items-center justify-between">
                   <span className="capitalize">{key}</span>
                   <div className="flex items-center">
-                    <span className="mr-2 text-sm">{value ? 'Show' : 'Hide'}</span>
                     <label className="switch">
                       <input
                         type="checkbox"
@@ -119,12 +136,14 @@ function IdCardrender({
                       />
                       <span className="slider round"></span>
                     </label>
-                    <span className="ml-2 text-sm">{value ? 'Hide' : 'Show'}</span>
+                    <span className="ml-2 text-sm">
+                      {value ? "Show" : "Hide"}
+                    </span>
                   </div>
                 </div>
               ))}
             </div>
-            <button 
+            <button
               onClick={toggleModalOpen}
               className="mt-6 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
             >
@@ -167,7 +186,7 @@ function IdCardrender({
           right: 0;
           bottom: 0;
           background-color: #ccc;
-          transition: .4s;
+          transition: 0.4s;
         }
         .slider:before {
           position: absolute;
@@ -177,10 +196,10 @@ function IdCardrender({
           left: 4px;
           bottom: 4px;
           background-color: white;
-          transition: .4s;
+          transition: 0.4s;
         }
         input:checked + .slider {
-          background-color: #2196F3;
+          background-color: #2196f3;
         }
         input:checked + .slider:before {
           transform: translateX(26px);
@@ -226,9 +245,12 @@ const IdCard = ({
     }).then((result) => {
       if (result.isConfirmed) {
         axios
-          .patch(`https://kdemapi.insideoutprojects.in/api/participants/archive/${id}`, {
-            archive: true,
-          })
+          .patch(
+            `https://kdemapi.insideoutprojects.in/api/participants/archive/${id}`,
+            {
+              archive: true,
+            }
+          )
           .then((res) => {
             Swal.fire("Archived!", "ID Cards has been archived.", "success");
             fetchData();
@@ -305,7 +327,7 @@ const IdCard = ({
         id={`id-card-${index}`}
         className="relative rounded-[1px] h-[580px] w-[430px]"
       >
-        <div className="relative z-10 flex flex-col items-center justify-center h-full text-white">
+        <div className="relative z-10 h-full text-white">
           <div className="absolute inset-0">
             <img
               src={card.backgroundImage}
@@ -313,39 +335,39 @@ const IdCard = ({
               className="w-full h-full object-cover"
             />
           </div>
-          <div className="relative flex flex-col p-4 mt-[210px]">
-            {globalVisibility.name && (
-              <h2 className="text-[20px] mb-5 font-bold text-center mt-2 text-white">
-                {card.firstName} {card.lastName}
-              </h2>
-            )}
+          <div className="relative h-full flex flex-col justify-between p-4">
             {globalVisibility.profilePicture && (
-              <div className="flex justify-center">
+              <div className="absolute bottom-[160px] left-[50%] transform -translate-x-1/2">
                 <img
                   src={card.profilePicture}
                   style={{ objectFit: "cover" }}
                   alt="Profile"
-                  className="w-[150px] h-[150px] rounded-[2px]"
+                  className="w-[170px] h-[170px] rounded-[2px]"
                 />
               </div>
             )}
+            {globalVisibility.name && (
+              <h2 className="absolute top-[200px] left-[50%] transform -translate-x-1/2 text-[20px] font-bold text-center mt-2 text-white">
+                {card.firstName} {card.lastName}
+              </h2>
+            )}
             {globalVisibility.institute && (
-              <p className="text-sm font-semibold text-center text-white mt-1 mb-4">
+              <p className="absolute bottom-[130px] left-[50%] transform -translate-x-1/2 text-lg font-semibold text-center text-white mt-1">
                 {card.institute}
               </p>
             )}
             {globalVisibility.designation && (
-              <p className="text-md font-bold text-center text-black">
+              <p className="absolute bottom-[107px] left-[50%] transform -translate-x-1/2 text-md font-bold text-center text-black">
                 {card.designation}
               </p>
             )}
             {globalVisibility.qrCode && (
-              <div className="flex justify-center">
-                <QRCode value={participantUrl} size={85} level="H" />
+              <div className="absolute bottom-[15px] left-[50%] transform -translate-x-1/2">
+                <QRCode value={participantUrl} size={92} level="H" />
               </div>
             )}
             {globalVisibility.participantId && (
-              <div className="text-md font-bold text-center text-black">
+              <div className="absolute bottom-[1px] left-[50%] transform -translate-x-1/2 text-xs font-bold text-center text-black">
                 {card.participantId}
               </div>
             )}
