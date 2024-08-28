@@ -613,15 +613,16 @@ const IdCard = ({
             )}
             {globalVisibility.institute && (
               <p
-                style={{
-                  bottom: `${elementStyles.institute.bottom}px`,
-                  fontSize: `${elementStyles.institute.fontSize}px`,
-                  color: elementStyles.institute.color,
-                }}
-                className="absolute bottom-[130px] left-[50%] transform -translate-x-1/2 text-lg font-semibold text-center text-white mt-1"
-              >
-                {card.institute}
-              </p>
+              style={{
+                bottom: `${elementStyles.institute.bottom}px`,
+                fontSize: `${elementStyles.institute.fontSize}px`,
+                color: elementStyles.institute.color,
+              }}
+              className="absolute bottom-[130px] left-0 right-0 w-full whitespace-nowrap text-lg font-semibold text-center text-white mt-1"
+            >
+              {card.institute}
+            </p>
+            
             )}
             {globalVisibility.designation && (
               <p
