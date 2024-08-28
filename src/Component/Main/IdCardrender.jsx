@@ -6,6 +6,7 @@ import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import { toPng } from "html-to-image";
 import EditParticipent from "./Edit/EditParticipent";
+import * as XLSX from "xlsx";
 
 function IdCardrender({
   Dataid,
@@ -17,6 +18,16 @@ function IdCardrender({
 }) {
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpenedit, setIsModalOpenedit] = useState(false);
+  const [elementStyles, setElementStyles] = useState({
+    profilePicture: { bottom: 160, size: 170 },
+    name: { top: 200, fontSize: 20, color: "white" },
+    institute: { bottom: 130, fontSize: 18, color: "white" },
+    designation: { bottom: 107, fontSize: 16, color: "black" },
+    qrCode: { bottom: 15 },
+    participantId: { bottom: 1, fontSize: 12, color: "black" },
+  });
+  const toggleModalOpenedit = () => setIsModalOpenedit(!isModalOpenedit);
   const [globalVisibility, setGlobalVisibility] = useState({
     name: true,
     profilePicture: true,
@@ -71,17 +82,151 @@ function IdCardrender({
     setGlobalVisibility((prev) => ({ ...prev, [field]: !prev[field] }));
   };
 
+  const downloadAllEntries = () => {
+    setLoading(true);
+    const formattedData = reversedData.map((card, index) => ({
+      "S.No": index + 1,
+      EventName: card.eventName,
+      EventID: card.eventId,
+      FirstName: card.firstName,
+      LastName: card.lastName,
+      Designation: card.designation,
+      Institute: card.institute,
+      ParticipantID: card.participantId,
+      ProfilePicture: card.profilePicture,
+      // BackgroundImage: card.backgroundImage,
+      Amenities: JSON.stringify(card.amenities), // Converting object to string
+      // Archive: card.archive,
+      CreatedAt: new Date(card.createdAt).toLocaleString(),
+      UpdatedAt: new Date(card.updatedAt).toLocaleString(),
+    }));
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(formattedData);
+
+    // Append the worksheet to the workbook
+    XLSX.utils.book_append_sheet(wb, ws, "ID Cards");
+
+    // Generate Excel file and trigger download
+    const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+    const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
+    saveAs(blob, `${eventName}_ID_Cards.xlsx`);
+
+    setLoading(false);
+  };
+  const updateElementStyle = (element, property, value) => {
+    setElementStyles((prev) => ({
+      ...prev,
+      [element]: { ...prev[element], [property]: value },
+    }));
+  };
+  const colorOptions = ["white", "black", "orange"];
+  const renderStyleControls = (
+    element,
+    label,
+    minValue = 0,
+    maxValue = 580,
+    sizeControl = false,
+    colorControl = false
+  ) => (
+    <div className="space-y-4">
+      <label className="block text-sm font-medium text-gray-700">
+        {label} Position
+      </label>
+      <input
+        type="range"
+        min={minValue}
+        max={maxValue}
+        value={elementStyles[element].top || elementStyles[element].bottom}
+        onChange={(e) =>
+          updateElementStyle(
+            element,
+            element === "name" ? "top" : "bottom",
+            parseInt(e.target.value)
+          )
+        }
+        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+      />
+      {sizeControl && (
+        <>
+          <label className="block text-sm font-medium text-gray-700">
+            {label} Size
+          </label>
+          <input
+            type="range"
+            min={50}
+            max={250}
+            value={elementStyles[element].size}
+            onChange={(e) =>
+              updateElementStyle(element, "size", parseInt(e.target.value))
+            }
+            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+          />
+        </>
+      )}
+      {!sizeControl && (
+        <>
+          <label className="block text-sm font-medium text-gray-700">
+            {label} Font Size
+          </label>
+          <input
+            type="range"
+            min={8}
+            max={40}
+            value={elementStyles[element].fontSize}
+            onChange={(e) =>
+              updateElementStyle(element, "fontSize", parseInt(e.target.value))
+            }
+            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+          />
+        </>
+      )}
+      {colorControl && (
+        <>
+          <label className="block text-sm font-medium text-gray-700">
+            {label} Color
+          </label>
+          <div className="flex space-x-2">
+            {colorOptions.map((color) => (
+              <button
+                key={color}
+                onClick={() => updateElementStyle(element, "color", color)}
+                className={`w-8 h-8 rounded-full ${
+                  color === "white"
+                    ? "bg-white border border-gray-300"
+                    : color === "black"
+                    ? "bg-black"
+                    : "bg-orange-500"
+                } ${
+                  elementStyles[element].color === color
+                    ? "ring-2 ring-blue-500"
+                    : ""
+                }`}
+                aria-label={`Set ${label} color to ${color}`}
+              />
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
   return (
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">{eventName} Event All ID Cards</h1>
+        <h1 className="text-2xl font-bold">{eventName} All ID Cards</h1>
         <div className="flex gap-4">
           <button
             className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
-            onClick={toggleModalOpen}
+            onClick={toggleModalOpenedit}
           >
             Edit All ID Cards
           </button>
+          <button
+            className="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded"
+            onClick={toggleModalOpen}
+          >
+            Show & Hide
+          </button>
+
           <button
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded flex items-center"
             onClick={downloadAllImagesAsZip}
@@ -115,8 +260,103 @@ function IdCardrender({
               "Download All as ZIP"
             )}
           </button>
+          <button
+            className="bg-yellow-500 flex gap-2 items-center hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded"
+            onClick={downloadAllEntries}
+            disabled={loading}
+          >
+            {loading ? "Preparing Excel..." : "Download All Entries"}
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="22"
+              height="22"
+              fill="currentColor"
+              className="bi bi-cloud-arrow-down mt-1"
+              viewBox="0 0 16 16"
+            >
+              <path
+                fillRule="evenodd"
+                d="M7.646 10.854a.5.5 0 0 0 .708 0l2-2a.5.5 0 0 0-.708-.708L8.5 9.293V5.5a.5.5 0 0 0-1 0v3.793L6.354 8.146a.5.5 0 1 0-.708.708z"
+              />
+              <path d="M4.406 3.342A5.53 5.53 0 0 1 8 2c2.69 0 4.923 2 5.166 4.579C14.758 6.804 16 8.137 16 9.773 16 11.569 14.502 13 12.687 13H3.781C1.708 13 0 11.366 0 9.318c0-1.763 1.266-3.223 2.942-3.593.143-.863.698-1.723 1.464-2.383m.653.757c-.757.653-1.153 1.44-1.153 2.056v.448l-.445.049C2.064 6.805 1 7.952 1 9.318 1 10.785 2.23 12 3.781 12h8.906C13.98 12 15 10.988 15 9.773c0-1.216-1.02-2.228-2.313-2.228h-.5v-.5C12.188 4.825 10.328 3 8 3a4.53 4.53 0 0 0-2.941 1.1z" />
+            </svg>
+          </button>
         </div>
       </div>
+      {isModalOpenedit && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-lg w-[800px] h-[500px] overflow-y-auto">
+            <div className="flex justify-between items-center ">
+            <h2 className="text-xl font-bold mb-4">Edit ID Card Elements</h2>
+              <button
+                onClick={toggleModalOpenedit}
+                className=" bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+              >
+                Close
+              </button>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-10">
+              <div className="col-span-1 space-y-10">
+                {renderStyleControls("name", "Name", 0, 580, false, true)}
+                {renderStyleControls(
+                  "designation",
+                  "Designation",
+                  0,
+                  580,
+                  false,
+                  true
+                )}
+                {renderStyleControls(
+                  "profilePicture",
+                  "Profile Picture",
+                  0,
+                  580,
+                  true
+                )}
+              </div>
+              <div className="col-span-1 space-y-10">
+                {renderStyleControls(
+                  "institute",
+                  "Institute",
+                  0,
+                  580,
+                  false,
+                  true
+                )}
+                {renderStyleControls(
+                  "participantId",
+                  "Participant ID",
+                  0,
+                  580,
+                  false,
+                  true
+                )}
+
+                <div className="space-y-4">
+                  <label className="block text-sm font-medium text-gray-700">
+                    QR Code Position
+                  </label>
+                  <input
+                    type="range"
+                    min={0}
+                    max={580}
+                    value={elementStyles.qrCode.bottom}
+                    onChange={(e) =>
+                      updateElementStyle(
+                        "qrCode",
+                        "bottom",
+                        parseInt(e.target.value)
+                      )
+                    }
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-white p-6 rounded-lg max-w-sm w-full">
@@ -163,6 +403,7 @@ function IdCardrender({
             fetchDesignations={fetchDesignations}
             eventId={eventId}
             globalVisibility={globalVisibility}
+            elementStyles={elementStyles}
           />
         ))}
       </div>
@@ -221,6 +462,7 @@ const IdCard = ({
   fetchData,
   isLoading,
   fetchDesignations,
+  elementStyles,
   eventId,
   globalVisibility,
 }) => {
@@ -337,37 +579,81 @@ const IdCard = ({
           </div>
           <div className="relative h-full flex flex-col justify-between p-4">
             {globalVisibility.profilePicture && (
-              <div className="absolute bottom-[160px] left-[50%] transform -translate-x-1/2">
+              <div
+                style={{
+                  bottom: `${elementStyles.profilePicture.bottom}px`,
+                }}
+                className="absolute bottom-[160px] left-[50%] transform -translate-x-1/2"
+              >
                 <img
+                  style={{
+                    // top: `${elementStyles.profilePicture.top}px`,
+                    objectFit: "cover",
+                    // fontSize: `${elementStyles.name.fontSize}px`,
+                    width: `${elementStyles.profilePicture.size}px`,
+                    height: `${elementStyles.profilePicture.size}px`,
+                  }}
                   src={card.profilePicture}
-                  style={{ objectFit: "cover" }}
                   alt="Profile"
                   className="w-[170px] h-[170px] rounded-[2px]"
                 />
               </div>
             )}
             {globalVisibility.name && (
-              <h2 className="absolute top-[200px] left-[50%] transform -translate-x-1/2 text-[20px] font-bold text-center mt-2 w-full text-white">
+              <h2
+                style={{
+                  top: `${elementStyles.name.top}px`,
+                  fontSize: `${elementStyles.name.fontSize}px`,
+                  color: elementStyles.name.color,
+                }}
+                className="absolute top-[200px] left-[50%] transform -translate-x-1/2 text-[20px] font-bold text-center mt-2 w-full text-white"
+              >
                 {card.firstName} {card.lastName}
               </h2>
             )}
             {globalVisibility.institute && (
-              <p className="absolute bottom-[130px] left-[50%] transform -translate-x-1/2 text-lg font-semibold text-center text-white mt-1">
+              <p
+                style={{
+                  bottom: `${elementStyles.institute.bottom}px`,
+                  fontSize: `${elementStyles.institute.fontSize}px`,
+                  color: elementStyles.institute.color,
+                }}
+                className="absolute bottom-[130px] left-[50%] transform -translate-x-1/2 text-lg font-semibold text-center text-white mt-1"
+              >
                 {card.institute}
               </p>
             )}
             {globalVisibility.designation && (
-              <p className="absolute bottom-[107px] left-[50%] transform -translate-x-1/2 text-md font-bold text-center text-black">
+              <p
+                style={{
+                  bottom: `${elementStyles.designation.bottom}px`,
+                  fontSize: `${elementStyles.designation.fontSize}px`,
+                  color: elementStyles.designation.color,
+                }}
+                className="absolute bottom-[107px] left-[50%] transform -translate-x-1/2 text-md font-bold text-center text-black"
+              >
                 {card.designation}
               </p>
             )}
             {globalVisibility.qrCode && (
-              <div className="absolute bottom-[15px] left-[50%] transform -translate-x-1/2">
+              <div
+                style={{
+                  bottom: `${elementStyles.qrCode.bottom}px`,
+                }}
+                className="absolute bottom-[15px] left-[50%] transform -translate-x-1/2"
+              >
                 <QRCode value={participantUrl} size={92} level="H" />
               </div>
             )}
             {globalVisibility.participantId && (
-              <div className="absolute bottom-[1px] left-[50%] transform -translate-x-1/2 text-xs font-bold text-center text-black">
+              <div
+                style={{
+                  bottom: `${elementStyles.participantId.bottom}px`,
+                  fontSize: `${elementStyles.participantId.fontSize}px`,
+                  color: elementStyles.participantId.color,
+                }}
+                className="absolute bottom-[1px] left-[50%] transform -translate-x-1/2 text-xs font-bold text-center text-black"
+              >
                 {card.participantId}
               </div>
             )}
