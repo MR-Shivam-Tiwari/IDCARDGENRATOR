@@ -287,7 +287,7 @@ function IdCardrender({
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-white p-6 rounded-lg w-[800px] h-[500px] overflow-y-auto">
             <div className="flex justify-between items-center ">
-            <h2 className="text-xl font-bold mb-4">Edit ID Card Elements</h2>
+              <h2 className="text-xl font-bold mb-4">Edit ID Card Elements</h2>
               <button
                 onClick={toggleModalOpenedit}
                 className=" bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
@@ -295,7 +295,7 @@ function IdCardrender({
                 Close
               </button>
             </div>
-            
+
             <div className="grid grid-cols-2 gap-10">
               <div className="col-span-1 space-y-10">
                 {renderStyleControls("name", "Name", 0, 580, false, true)}
@@ -606,23 +606,24 @@ const IdCard = ({
                   fontSize: `${elementStyles.name.fontSize}px`,
                   color: elementStyles.name.color,
                 }}
-                className="absolute top-[200px] left-[50%] transform -translate-x-1/2 text-[20px] font-bold text-center mt-2 w-full text-white"
+                className="absolute top-[200px] uppercase left-[50%] transform -translate-x-1/2 text-[20px] font-bold text-center mt-2 w-full text-white"
               >
                 {card.firstName} {card.lastName}
               </h2>
             )}
             {globalVisibility.institute && (
               <p
-              style={{
-                bottom: `${elementStyles.institute.bottom}px`,
-                fontSize: `${elementStyles.institute.fontSize}px`,
-                color: elementStyles.institute.color,
-              }}
-              className="absolute bottom-[130px] left-0 right-0 w-full whitespace-nowrap text-lg font-semibold text-center text-white mt-1"
-            >
-              {card.institute}
-            </p>
-            
+                style={{
+                  bottom: `${elementStyles.institute.bottom}px`,
+                  fontSize: `${elementStyles.institute.fontSize}px`,
+                  color: elementStyles.institute.color,
+                }}
+                className="absolute bottom-[130px] left-0 right-0 w-full whitespace-nowrap text-lg font-semibold text-center text-white mt-1"
+              >
+                {card.institute
+                  .toLowerCase()
+                  .replace(/\b\w/g, (char) => char.toUpperCase())}
+              </p>
             )}
             {globalVisibility.designation && (
               <p
