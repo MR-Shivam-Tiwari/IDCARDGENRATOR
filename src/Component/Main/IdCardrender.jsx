@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import axios from "axios";
 import QRCode from "qrcode.react";
@@ -27,7 +27,6 @@ function IdCardrender({
     qrCode: { bottom: 15 },
     participantId: { bottom: 1, fontSize: 12, color: "black" },
   });
-  const toggleModalOpenedit = () => setIsModalOpenedit(!isModalOpenedit);
   const [globalVisibility, setGlobalVisibility] = useState({
     name: true,
     profilePicture: true,
@@ -36,6 +35,43 @@ function IdCardrender({
     qrCode: true,
     participantId: true,
   });
+  useEffect(() => {
+    fetchDesignSettings();
+  }, [eventId]);
+  const toggleModalOpenedit = () => setIsModalOpenedit(!isModalOpenedit);
+
+  const fetchDesignSettings = async () => {
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_API_URL}/api/participants/design/${eventId}`
+      );
+      if (response.data && response.data.elementStyles) {
+        setElementStyles(response.data.elementStyles);
+      }
+      if (response.data && response.data.visibility) {
+        setGlobalVisibility(response.data.visibility);
+      }
+    } catch (error) {
+      console.error("Error fetching design settings:", error);
+      // If settings don't exist, we'll use the defaults
+    }
+  };
+
+  const saveDesignSettings = async () => {
+    try {
+      await axios.post(
+        `${process.env.REACT_APP_API_URL}/api/participants/design/${eventId}`,
+        {
+          elementStyles,
+          visibility: globalVisibility,
+        }
+      );
+      Swal.fire("Success", "Design settings saved successfully", "success");
+    } catch (error) {
+      console.error("Error saving design settings:", error);
+      Swal.fire("Error", "Failed to save design settings", "error");
+    }
+  };
 
   if (!Array.isArray(Dataid) || Dataid.length === 0) {
     return (
@@ -73,13 +109,58 @@ function IdCardrender({
       });
     });
   };
+  const downloadAllImagesWithoutBackgroundAsZip = () => {
+    setLoading(true);
+    const zip = new JSZip();
+    const images = reversedData.map((card, index) => {
+      return new Promise((resolve) => {
+        const element = document.getElementById(`id-card-${index}`);
+        const backgroundImage = element.querySelector("img");
+        const originalDisplay = backgroundImage
+          ? backgroundImage.style.display
+          : null;
+
+        // Hide the background image
+        if (backgroundImage) backgroundImage.style.display = "none";
+
+        toPng(element, {
+          cacheBust: true,
+          backgroundColor: null,
+          quality: 1,
+          pixelRatio: 3,
+        })
+          .then((dataUrl) => {
+            zip.file(
+              `id-card-${index}-no-background.png`,
+              dataUrl.split(",")[1],
+              {
+                base64: true,
+              }
+            );
+            resolve();
+          })
+          .catch((error) => {
+            console.error("Could not capture image without background", error);
+            resolve(); // Ensure promise resolves even on error
+          })
+          .finally(() => {
+            // Restore the original background image display
+            if (backgroundImage)
+              backgroundImage.style.display = originalDisplay;
+          });
+      });
+    });
+
+    Promise.all(images).then(() => {
+      zip.generateAsync({ type: "blob" }).then((content) => {
+        saveAs(content, "id-cards-no-background.zip");
+        setLoading(false);
+      });
+    });
+  };
 
   const toggleModalOpen = () => {
     setIsModalOpen(!isModalOpen);
-  };
-
-  const toggleGlobalVisibility = (field) => {
-    setGlobalVisibility((prev) => ({ ...prev, [field]: !prev[field] }));
   };
 
   const downloadAllEntries = () => {
@@ -113,12 +194,21 @@ function IdCardrender({
 
     setLoading(false);
   };
+
+  const toggleGlobalVisibility = (field) => {
+    setGlobalVisibility((prev) => {
+      const newVisibility = { ...prev, [field]: !prev[field] };
+      return newVisibility;
+    });
+  };
+
   const updateElementStyle = (element, property, value) => {
     setElementStyles((prev) => ({
       ...prev,
       [element]: { ...prev[element], [property]: value },
     }));
   };
+
   const colorOptions = ["white", "black", "orange"];
   const renderStyleControls = (
     element,
@@ -186,7 +276,7 @@ function IdCardrender({
             {label} Color
           </label>
           <div className="flex space-x-2">
-            {colorOptions.map((color) => (
+            {["white", "black", "orange"].map((color) => (
               <button
                 key={color}
                 onClick={() => updateElementStyle(element, "color", color)}
@@ -210,153 +300,183 @@ function IdCardrender({
     </div>
   );
   return (
-    <div className="container mx-auto p-4">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">{eventName} All ID Cards</h1>
-        <div className="flex gap-4">
-          <button
-            className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
-            onClick={toggleModalOpenedit}
-          >
-            Edit All ID Cards
-          </button>
-          <button
-            className="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded"
-            onClick={toggleModalOpen}
-          >
-            Show & Hide
-          </button>
+    <div className="container mx-auto px-10">
+      <div className="flex justify-center ">
+        <h1 className="text-2xl border text-center px-5  p-1 rounded-md pb-2 bg-gray-200 mb-6 font-bold">
+          {eventName} All ID Cards
+        </h1>
+      </div>
+      <div className="flex  gap-4 my-10 justify-between">
+        <button
+          className="bg-green-500 hover:bg-green-700 whitespace-nowrap text-sm h-10 text-white font-bold py-2 px-4 rounded"
+          onClick={toggleModalOpenedit}
+        >
+          Edit All ID Cards
+        </button>
+        <button
+          className="bg-orange-500 hover:bg-orange-700 whitespace-nowrap text-sm h-10 text-white font-bold py-2 px-4 rounded"
+          onClick={toggleModalOpen}
+        >
+          Show & Hide
+        </button>
 
-          <button
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded flex items-center"
-            onClick={downloadAllImagesAsZip}
-            disabled={loading}
+        <button
+          className="bg-blue-500 hover:bg-blue-700 whitespace-nowrap text-sm h-10 text-white font-bold py-2 px-4 rounded flex items-center"
+          onClick={downloadAllImagesAsZip}
+          disabled={loading}
+        >
+          {loading ? (
+            <>
+              Wait...
+              <svg
+                className="animate-spin h-5 w-5 ml-2"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.963 7.963 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+            </>
+          ) : (
+            "Download All as ZIP"
+          )}
+        </button>
+        <button
+          className="bg-blue-500 hover:bg-blue-700 whitespace-nowrap text-sm h-10 text-white font-bold py-2 px-4 rounded flex items-center"
+          onClick={downloadAllImagesWithoutBackgroundAsZip}
+          disabled={loading}
+        >
+          {loading ? (
+            <>
+              Wait...
+              <svg
+                className="animate-spin h-5 w-5 ml-2"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.963 7.963 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+            </>
+          ) : (
+            "Download Without Background ZIP"
+          )}
+        </button>
+        <button
+          className="bg-yellow-500 flex gap-2 items-center whitespace-nowrap text-sm h-10 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded"
+          onClick={downloadAllEntries}
+          disabled={loading}
+        >
+          {loading ? "Preparing Excel..." : "Download All Entries"}
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="22"
+            height="22"
+            fill="currentColor"
+            className="bi bi-cloud-arrow-down mt-1"
+            viewBox="0 0 16 16"
           >
-            {loading ? (
-              <>
-                Wait...
-                <svg
-                  className="animate-spin h-5 w-5 ml-2"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.963 7.963 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
-              </>
-            ) : (
-              "Download All as ZIP"
-            )}
-          </button>
-          <button
-            className="bg-yellow-500 flex gap-2 items-center hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded"
-            onClick={downloadAllEntries}
-            disabled={loading}
-          >
-            {loading ? "Preparing Excel..." : "Download All Entries"}
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="22"
-              height="22"
-              fill="currentColor"
-              className="bi bi-cloud-arrow-down mt-1"
-              viewBox="0 0 16 16"
-            >
-              <path
-                fillRule="evenodd"
-                d="M7.646 10.854a.5.5 0 0 0 .708 0l2-2a.5.5 0 0 0-.708-.708L8.5 9.293V5.5a.5.5 0 0 0-1 0v3.793L6.354 8.146a.5.5 0 1 0-.708.708z"
-              />
-              <path d="M4.406 3.342A5.53 5.53 0 0 1 8 2c2.69 0 4.923 2 5.166 4.579C14.758 6.804 16 8.137 16 9.773 16 11.569 14.502 13 12.687 13H3.781C1.708 13 0 11.366 0 9.318c0-1.763 1.266-3.223 2.942-3.593.143-.863.698-1.723 1.464-2.383m.653.757c-.757.653-1.153 1.44-1.153 2.056v.448l-.445.049C2.064 6.805 1 7.952 1 9.318 1 10.785 2.23 12 3.781 12h8.906C13.98 12 15 10.988 15 9.773c0-1.216-1.02-2.228-2.313-2.228h-.5v-.5C12.188 4.825 10.328 3 8 3a4.53 4.53 0 0 0-2.941 1.1z" />
-            </svg>
-          </button>
-        </div>
+            <path
+              fillRule="evenodd"
+              d="M7.646 10.854a.5.5 0 0 0 .708 0l2-2a.5.5 0 0 0-.708-.708L8.5 9.293V5.5a.5.5 0 0 0-1 0v3.793L6.354 8.146a.5.5 0 1 0-.708.708z"
+            />
+            <path d="M4.406 3.342A5.53 5.53 0 0 1 8 2c2.69 0 4.923 2 5.166 4.579C14.758 6.804 16 8.137 16 9.773 16 11.569 14.502 13 12.687 13H3.781C1.708 13 0 11.366 0 9.318c0-1.763 1.266-3.223 2.942-3.593.143-.863.698-1.723 1.464-2.383m.653.757c-.757.653-1.153 1.44-1.153 2.056v.448l-.445.049C2.064 6.805 1 7.952 1 9.318 1 10.785 2.23 12 3.781 12h8.906C13.98 12 15 10.988 15 9.773c0-1.216-1.02-2.228-2.313-2.228h-.5v-.5C12.188 4.825 10.328 3 8 3a4.53 4.53 0 0 0-2.941 1.1z" />
+          </svg>
+        </button>
       </div>
       {isModalOpenedit && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-lg w-[800px] h-[500px] overflow-y-auto">
+          <div className="bg-white p-6 rounded-lg w-[800px]">
             <div className="flex justify-between items-center ">
               <h2 className="text-xl font-bold mb-4">Edit ID Card Elements</h2>
+            </div>
+
+            <div className=" h-[350px] px-2 overflow-y-auto">
+              <div className="grid grid-cols-2 gap-10">
+                <div className="col-span-1 space-y-10">
+                  {renderStyleControls("name", "Name", 0, 580, false, true)}
+                  {renderStyleControls(
+                    "designation",
+                    "Designation",
+                    0,
+                    580,
+                    false,
+                    true
+                  )}
+                  {renderStyleControls(
+                    "profilePicture",
+                    "Profile Picture",
+                    0,
+                    580,
+                    true
+                  )}
+                </div>
+                <div className="col-span-1 space-y-10">
+                  {renderStyleControls(
+                    "institute",
+                    "Institute",
+                    0,
+                    580,
+                    false,
+                    true
+                  )}
+                  {renderStyleControls(
+                    "participantId",
+                    "Participant ID",
+                    0,
+                    580,
+                    false,
+                    true
+                  )}
+                  {renderStyleControls("qrCode", "QR Code", 0, 580)}
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-end gap-6 mt-6 items-center">
               <button
                 onClick={toggleModalOpenedit}
-                className=" bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+                className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
               >
                 Close
               </button>
-            </div>
-
-            <div className="grid grid-cols-2 gap-10">
-              <div className="col-span-1 space-y-10">
-                {renderStyleControls("name", "Name", 0, 580, false, true)}
-                {renderStyleControls(
-                  "designation",
-                  "Designation",
-                  0,
-                  580,
-                  false,
-                  true
-                )}
-                {renderStyleControls(
-                  "profilePicture",
-                  "Profile Picture",
-                  0,
-                  580,
-                  true
-                )}
-              </div>
-              <div className="col-span-1 space-y-10">
-                {renderStyleControls(
-                  "institute",
-                  "Institute",
-                  0,
-                  580,
-                  false,
-                  true
-                )}
-                {renderStyleControls(
-                  "participantId",
-                  "Participant ID",
-                  0,
-                  580,
-                  false,
-                  true
-                )}
-
-                <div className="space-y-4">
-                  <label className="block text-sm font-medium text-gray-700">
-                    QR Code Position
-                  </label>
-                  <input
-                    type="range"
-                    min={0}
-                    max={580}
-                    value={elementStyles.qrCode.bottom}
-                    onChange={(e) =>
-                      updateElementStyle(
-                        "qrCode",
-                        "bottom",
-                        parseInt(e.target.value)
-                      )
-                    }
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                  />
-                </div>
-              </div>
+              <button
+                onClick={() => {
+                  saveDesignSettings();
+                  toggleModalOpenedit();
+                }}
+                className=" bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+              >
+                Save Changes
+              </button>
             </div>
           </div>
         </div>
       )}
+
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-white p-6 rounded-lg max-w-sm w-full">
@@ -383,12 +503,23 @@ function IdCardrender({
                 </div>
               ))}
             </div>
-            <button
-              onClick={toggleModalOpen}
-              className="mt-6 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-            >
-              Close
-            </button>
+            <div className="flex justify-end gap-4">
+              <button
+                onClick={toggleModalOpen}
+                className="mt-6 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+              >
+                Close
+              </button>
+              <button
+                onClick={() => {
+                  saveDesignSettings();
+                  toggleModalOpen();
+                }}
+                className="mt-6 bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mr-2"
+              >
+                Save Changes
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -474,7 +605,15 @@ const IdCard = ({
     setModal(!modal);
     fetchDesignations(eventId);
   };
-
+  const defaultElementStyles = {
+    profilePicture: { bottom: 160, size: 170 },
+    name: { top: 200, fontSize: 20, color: "white" },
+    institute: { bottom: 130, fontSize: 18, color: "white" },
+    designation: { bottom: 107, fontSize: 16, color: "black" },
+    qrCode: { bottom: 15 },
+    participantId: { bottom: 1, fontSize: 12, color: "black" },
+  };
+  const styles = elementStyles || defaultElementStyles;
   const handleDelete = (id) => {
     Swal.fire({
       title: "Archive ID Cards?",
@@ -488,7 +627,7 @@ const IdCard = ({
       if (result.isConfirmed) {
         axios
           .patch(
-            `https://kdemapi.insideoutprojects.in/api/participants/archive/${id}`,
+            process.env.REACT_APP_API_URL + `/api/participants/archive/${id}`,
             {
               archive: true,
             }
@@ -504,7 +643,10 @@ const IdCard = ({
     });
   };
 
-  const participantUrl = `https://idcardgenrator.vercel.app/approve/${card._id}`;
+  const participantUrl =
+    card && card._id
+      ? `https://idcardgenrator.vercel.app/approve/${card._id}`
+      : "#";
 
   const downloadImage = () => {
     const element = idCardRef.current;
@@ -535,7 +677,11 @@ const IdCard = ({
   const downloadImageWithoutBackground = () => {
     const element = idCardRef.current;
     if (!element) return;
-
+    // const backgroundImage = element.querySelector("img");
+    // const originalBackgroundImage = backgroundImage ? backgroundImage.style.display : 'none';
+    // if (backgroundImage) backgroundImage.style.display = "none";
+    // // ...
+    // if (backgroundImage) backgroundImage.style.display = originalBackgroundImage;
     const originalBackgroundImage = element.querySelector("img").style.display;
     element.querySelector("img").style.display = "none";
 
@@ -561,6 +707,9 @@ const IdCard = ({
         setIsDownloading(false);
       });
   };
+  if (!card) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="relative mb-20 h-[580px] w-[430px]">
@@ -571,27 +720,27 @@ const IdCard = ({
       >
         <div className="relative z-10 h-full text-white">
           <div className="absolute inset-0">
-            <img
-              src={card.backgroundImage}
-              alt=""
-              className="w-full h-full object-cover"
-            />
+            {card.backgroundImage && (
+              <img
+                src={card.backgroundImage}
+                alt=""
+                className="w-full h-full object-cover"
+              />
+            )}
           </div>
           <div className="relative h-full flex flex-col justify-between p-4">
-            {globalVisibility.profilePicture && (
+            {globalVisibility.profilePicture && card.profilePicture && (
               <div
                 style={{
-                  bottom: `${elementStyles.profilePicture.bottom}px`,
+                  bottom: `${styles.profilePicture.bottom}px`,
                 }}
                 className="absolute bottom-[160px] left-[50%] transform -translate-x-1/2"
               >
                 <img
                   style={{
-                    // top: `${elementStyles.profilePicture.top}px`,
                     objectFit: "cover",
-                    // fontSize: `${elementStyles.name.fontSize}px`,
-                    width: `${elementStyles.profilePicture.size}px`,
-                    height: `${elementStyles.profilePicture.size}px`,
+                    width: `${styles.profilePicture.size}px`,
+                    height: `${styles.profilePicture.size}px`,
                   }}
                   src={card.profilePicture}
                   alt="Profile"
@@ -599,24 +748,24 @@ const IdCard = ({
                 />
               </div>
             )}
-            {globalVisibility.name && (
+            {globalVisibility.name && card.firstName && card.lastName && (
               <h2
                 style={{
-                  top: `${elementStyles.name.top}px`,
-                  fontSize: `${elementStyles.name.fontSize}px`,
-                  color: elementStyles.name.color,
+                  top: `${styles.name.top}px`,
+                  fontSize: `${styles.name.fontSize}px`,
+                  color: styles.name.color,
                 }}
                 className="absolute top-[200px] uppercase left-[50%] transform -translate-x-1/2 text-[20px] font-bold text-center mt-2 w-full text-white"
               >
                 {card.firstName} {card.lastName}
               </h2>
             )}
-            {globalVisibility.institute && (
+            {globalVisibility.institute && card.institute && (
               <p
                 style={{
-                  bottom: `${elementStyles.institute.bottom}px`,
-                  fontSize: `${elementStyles.institute.fontSize}px`,
-                  color: elementStyles.institute.color,
+                  bottom: `${styles.institute.bottom}px`,
+                  fontSize: `${styles.institute.fontSize}px`,
+                  color: styles.institute.color,
                 }}
                 className="absolute bottom-[130px] left-0 right-0 w-full whitespace-nowrap text-lg font-semibold text-center text-white mt-1"
               >
@@ -625,12 +774,12 @@ const IdCard = ({
                   .replace(/\b\w/g, (char) => char.toUpperCase())}
               </p>
             )}
-            {globalVisibility.designation && (
+            {globalVisibility.designation && card.designation && (
               <p
                 style={{
-                  bottom: `${elementStyles.designation.bottom}px`,
-                  fontSize: `${elementStyles.designation.fontSize}px`,
-                  color: elementStyles.designation.color,
+                  bottom: `${styles.designation.bottom}px`,
+                  fontSize: `${styles.designation.fontSize}px`,
+                  color: styles.designation.color,
                 }}
                 className="absolute bottom-[107px] left-[50%] transform -translate-x-1/2 text-md font-bold text-center text-black"
               >
@@ -640,19 +789,19 @@ const IdCard = ({
             {globalVisibility.qrCode && (
               <div
                 style={{
-                  bottom: `${elementStyles.qrCode.bottom}px`,
+                  bottom: `${styles.qrCode.bottom}px`,
                 }}
                 className="absolute bottom-[15px] left-[50%] transform -translate-x-1/2"
               >
                 <QRCode value={participantUrl} size={92} level="H" />
               </div>
             )}
-            {globalVisibility.participantId && (
+            {globalVisibility.participantId && card.participantId && (
               <div
                 style={{
-                  bottom: `${elementStyles.participantId.bottom}px`,
-                  fontSize: `${elementStyles.participantId.fontSize}px`,
-                  color: elementStyles.participantId.color,
+                  bottom: `${styles.participantId.bottom}px`,
+                  fontSize: `${styles.participantId.fontSize}px`,
+                  color: styles.participantId.color,
                 }}
                 className="absolute bottom-[1px] left-[50%] transform -translate-x-1/2 text-xs font-bold text-center text-black"
               >

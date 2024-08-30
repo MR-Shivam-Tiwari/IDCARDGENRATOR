@@ -10,7 +10,7 @@ function Login() {
     e.preventDefault();
 
     try {
-      const response = await fetch("https://kdemapi.insideoutprojects.in/api/users/login", {
+      const response = await fetch(process.env.REACT_APP_API_URL+`/api/users/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

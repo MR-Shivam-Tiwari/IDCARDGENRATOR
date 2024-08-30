@@ -68,7 +68,7 @@ function EditEvents({ toggleEditModal, event, fetchEvents, id, onClose }) {
 
     try {
       const response = await fetch(
-        `https://kdemapi.insideoutprojects.in/api/events/edit/${event._id}`,
+        `${process.env.REACT_APP_API_URL}/api/events/edit/${event._id}`,
         {
           method: "PATCH",
           body: formData,

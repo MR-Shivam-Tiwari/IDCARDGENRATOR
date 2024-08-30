@@ -7,7 +7,7 @@ function ArchiveEvent() {
   const fetchEvents = async () => {
     try {
       const response = await axios.get(
-        "https://kdemapi.insideoutprojects.in/api/events/archiveevent"
+        `${process.env.REACT_APP_API_URL}/api/events/archiveevent`
       );
       setEvents(response.data);
       setLoading(false);
@@ -31,7 +31,7 @@ function ArchiveEvent() {
     }).then((result) => {
       if (result.isConfirmed) {
         axios
-          .patch(`https://kdemapi.insideoutprojects.in/api/events/archive/${id}`, {
+          .patch(`${process.env.REACT_APP_API_URL}/api/events/archive/${id}`, {
             archive: false,
           })
           .then((res) => {

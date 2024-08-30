@@ -87,7 +87,7 @@ function EventPage() {
       }
 
       const response = await axios.post(
-        "https://kdemapi.insideoutprojects.in/api/events",
+        `${process.env.REACT_APP_API_URL}/api/events`,
         formData,
         {
           headers: {
@@ -122,7 +122,7 @@ function EventPage() {
   const fetchEvents = async () => {
     try {
       const response = await axios.get(
-        "https://kdemapi.insideoutprojects.in/api/events"
+        process.env.REACT_APP_API_URL + `/api/events`
       );
       setEvents(response.data);
       setLoading(false);
@@ -135,7 +135,7 @@ function EventPage() {
 
   const fetchData = async () => {
     try {
-      const url = `https://kdemapi.insideoutprojects.in/api/participants/event/${eventId}`;
+      const url = `${process.env.REACT_APP_API_URL}/api/participants/event/${eventId}`;
       const response = await axios.get(url);
       console.log("Participants by EventId:", response.data); // Log fetched participants
       setDataid(response.data); // Update state with fetched data
@@ -194,12 +194,9 @@ function EventPage() {
     }).then((result) => {
       if (result.isConfirmed) {
         axios
-          .patch(
-            `https://kdemapi.insideoutprojects.in/api/events/archive/${id}`,
-            {
-              archive: true,
-            }
-          )
+          .patch(process.env.REACT_APP_API_URL+`/api/events/archive/${id}`, {
+            archive: true,
+          })
           .then((res) => {
             Swal.fire("Archived!", "Event has been archived.", "success");
             fetchEvents(); // Assuming fetchEvents is a function to fetch updated events list

@@ -59,7 +59,7 @@ function CreateId() {
 
   const fetchData = async () => {
     try {
-      const url = `https://kdemapi.insideoutprojects.in/api/participants/event/${eventId}`;
+      const url = `${process.env.REACT_APP_API_URL}/api/participants/event/${eventId}`;
       const response = await axios.get(url);
       console.log("Participants by EventId:", response.data); // Log fetched participants
       setDataid(response.data); // Update state with fetched data
@@ -129,7 +129,7 @@ function CreateId() {
 
       // Send POST request
       const response = await axios.post(
-        "https://kdemapi.insideoutprojects.in/api/participants",
+        `${process.env.REACT_APP_API_URL}/api/participants`,
         formData,
         {
           headers: {
@@ -266,7 +266,7 @@ function CreateId() {
   const fetchDesignations = async (eventId) => {
     try {
       const response = await axios.get(
-        `https://kdemapi.insideoutprojects.in/api/events`
+        `${process.env.REACT_APP_API_URL}/api/events`
       );
       const filteredDesignations = response.data.filter(
         (categories) => categories._id === eventId
@@ -360,7 +360,7 @@ function CreateId() {
   const handleGenerateLink = async () => {
     try {
       const response = await axios.post(
-        "https://kdemapi.insideoutprojects.in/api/participants/generate-token",
+        `${process.env.REACT_APP_API_URL}/api/participants/generate-token`,
         {
           eventId,
           eventName,
