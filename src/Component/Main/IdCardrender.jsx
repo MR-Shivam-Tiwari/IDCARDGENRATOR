@@ -414,7 +414,7 @@ function IdCardrender({
             <div className="flex justify-between items-center ">
               <h2 className="text-xl font-bold mb-4">Edit ID Card Elements</h2>
             </div>
-
+                 
             <div className=" h-[350px] px-2 overflow-y-auto">
               <div className="grid grid-cols-2 gap-10">
                 <div className="col-span-1 space-y-10">
