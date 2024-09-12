@@ -23,6 +23,7 @@ function CreateId() {
   const [eventId, setEventId] = useState(params.get("eventid"));
   const [eventName, setEventName] = useState("");
   const [institute, setInstitute] = useState("");
+  const [email, setemail] = useState("");
   const [selectedIdCardType, setSelectedIdCardType] = useState("vertical");
   const [isWebcamEnabled, setIsWebcamEnabled] = useState(false);
   const [backgroundImage, setBackgroundImage] = useState(null);
@@ -113,6 +114,7 @@ function CreateId() {
       formData.append("institute", institute);
       formData.append("eventId", eventId);
       formData.append("eventName", eventName);
+      formData.append("email", email);
 
       // Ensure amenities is an object and convert it to JSON
       const amenitiesObject = typeof amenities === "object" ? amenities : {};
@@ -490,8 +492,12 @@ function CreateId() {
                     />{" "}
                   </div>
                   <div className="flex justify-center  ">
-
-                  <button className="bg-blue-500 font-bold text-white p-2 px-4 rounded-md  hover:bg-blue-600" onClick={handleGenerateLink}>Generate Link</button>
+                    <button
+                      className="bg-blue-500 font-bold text-white p-2 px-4 rounded-md  hover:bg-blue-600"
+                      onClick={handleGenerateLink}
+                    >
+                      Generate Link
+                    </button>
                   </div>
 
                   {generatedLink && (
@@ -608,6 +614,24 @@ function CreateId() {
                           </div>
                         </div>
                       </div>
+                      <div>
+                        <label
+                          htmlFor="lastname"
+                          className="block text-sm font-medium text-gray-700"
+                        >
+                          Email
+                        </label>
+                        <div className="mt-1">
+                          <input
+                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                            id="email"
+                            placeholder="Enter your Email"
+                            
+                            value={email}
+                            onChange={(e) => setemail(e.target.value)}
+                          />
+                        </div>
+                      </div>
                       <div className="grid-cols-2 grid  gap-6">
                         <div className="mt-4">
                           <label
@@ -621,7 +645,7 @@ function CreateId() {
                               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                               id="institute"
                               placeholder="Enter your Institute"
-                              required
+                              // required
                               value={institute}
                               onChange={(e) => setInstitute(e.target.value)}
                             />
@@ -639,7 +663,7 @@ function CreateId() {
                               className="flex h-10 w-[100%] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                               id="designation"
                               placeholder="Enter your Designation"
-                              required
+                              // required
                               value={designation}
                               onChange={(e) => setDesignation(e.target.value)}
                             >

@@ -414,7 +414,7 @@ function IdCardrender({
             <div className="flex justify-between items-center ">
               <h2 className="text-xl font-bold mb-4">Edit ID Card Elements</h2>
             </div>
-                 
+
             <div className=" h-[350px] px-2 overflow-y-auto">
               <div className="grid grid-cols-2 gap-10">
                 <div className="col-span-1 space-y-10">
@@ -716,7 +716,7 @@ const IdCard = ({
       <div
         ref={idCardRef}
         id={`id-card-${index}`}
-        className="relative rounded-[1px] h-[580px] w-[430px]"
+        className="relative rounded-[1px] h-[600px] w-[430px]"
       >
         <div className="relative z-10 h-full text-white">
           <div className="absolute inset-0">
@@ -757,7 +757,9 @@ const IdCard = ({
                 }}
                 className="absolute top-[200px] uppercase left-[50%] transform -translate-x-1/2 text-[20px] font-bold text-center mt-2 w-full text-white"
               >
-                {card.firstName} {card.lastName}
+                {/* <div className="flex justify-center gap-2 "> */}
+                  <p>{card.firstName}  {card.lastName}</p> 
+                {/* </div> */}
               </h2>
             )}
             {globalVisibility.institute && card.institute && (
