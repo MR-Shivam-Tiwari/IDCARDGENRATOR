@@ -35,10 +35,18 @@ function IdCardrender({
     qrCode: true,
     participantId: true,
   });
+  const [previewCard, setPreviewCard] = useState(null);
+
   useEffect(() => {
     fetchDesignSettings();
   }, [eventId]);
-  const toggleModalOpenedit = () => setIsModalOpenedit(!isModalOpenedit);
+
+  const toggleModalOpenedit = () => {
+    if (!isModalOpenedit && Dataid.length > 0) {
+      setPreviewCard(Dataid[0]);
+    }
+    setIsModalOpenedit(!isModalOpenedit);
+  };
 
   const fetchDesignSettings = async () => {
     try {
@@ -53,7 +61,6 @@ function IdCardrender({
       }
     } catch (error) {
       console.error("Error fetching design settings:", error);
-      // If settings don't exist, we'll use the defaults
     }
   };
 
@@ -109,6 +116,7 @@ function IdCardrender({
       });
     });
   };
+
   const downloadAllImagesWithoutBackgroundAsZip = () => {
     setLoading(true);
     const zip = new JSZip();
@@ -120,7 +128,6 @@ function IdCardrender({
           ? backgroundImage.style.display
           : null;
 
-        // Hide the background image
         if (backgroundImage) backgroundImage.style.display = "none";
 
         toPng(element, {
@@ -141,10 +148,9 @@ function IdCardrender({
           })
           .catch((error) => {
             console.error("Could not capture image without background", error);
-            resolve(); // Ensure promise resolves even on error
+            resolve();
           })
           .finally(() => {
-            // Restore the original background image display
             if (backgroundImage)
               backgroundImage.style.display = originalDisplay;
           });
@@ -174,20 +180,17 @@ function IdCardrender({
       Designation: card.designation,
       Institute: card.institute,
       ParticipantID: card.participantId,
+      email: card.email,
       ProfilePicture: card.profilePicture,
-      // BackgroundImage: card.backgroundImage,
-      Amenities: JSON.stringify(card.amenities), // Converting object to string
-      // Archive: card.archive,
+      Amenities: JSON.stringify(card.amenities),
       CreatedAt: new Date(card.createdAt).toLocaleString(),
       UpdatedAt: new Date(card.updatedAt).toLocaleString(),
     }));
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.json_to_sheet(formattedData);
 
-    // Append the worksheet to the workbook
     XLSX.utils.book_append_sheet(wb, ws, "ID Cards");
 
-    // Generate Excel file and trigger download
     const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
     const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
     saveAs(blob, `${eventName}_ID_Cards.xlsx`);
@@ -203,10 +206,16 @@ function IdCardrender({
   };
 
   const updateElementStyle = (element, property, value) => {
-    setElementStyles((prev) => ({
-      ...prev,
-      [element]: { ...prev[element], [property]: value },
-    }));
+    setElementStyles((prev) => {
+      const newStyles = {
+        ...prev,
+        [element]: { ...prev[element], [property]: value },
+      };
+      if (previewCard) {
+        setPreviewCard({ ...previewCard });
+      }
+      return newStyles;
+    });
   };
 
   const colorOptions = ["white", "black", "orange"];
@@ -276,7 +285,7 @@ function IdCardrender({
             {label} Color
           </label>
           <div className="flex space-x-2">
-            {["white", "black", "orange"].map((color) => (
+            {colorOptions.map((color) => (
               <button
                 key={color}
                 onClick={() => updateElementStyle(element, "color", color)}
@@ -299,6 +308,7 @@ function IdCardrender({
       )}
     </div>
   );
+
   return (
     <div className="container mx-auto px-10">
       <div className="flex justify-center ">
@@ -319,7 +329,6 @@ function IdCardrender({
         >
           Show & Hide
         </button>
-
         <button
           className="bg-blue-500 hover:bg-blue-700 whitespace-nowrap text-sm h-10 text-white font-bold py-2 px-4 rounded flex items-center"
           onClick={downloadAllImagesAsZip}
@@ -410,68 +419,84 @@ function IdCardrender({
       </div>
       {isModalOpenedit && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-lg w-[800px]">
-            <div className="flex justify-between items-center ">
+          <div className="bg-white p-6 rounded-lg w-[1200px] h-[95vh] flex">
+            <div className="w-full pr-4">
               <h2 className="text-xl font-bold mb-4">Edit ID Card Elements</h2>
-            </div>
-
-            <div className=" h-[350px] px-2 overflow-y-auto">
-              <div className="grid grid-cols-2 gap-10">
-                <div className="col-span-1 space-y-10">
-                  {renderStyleControls("name", "Name", 0, 580, false, true)}
-                  {renderStyleControls(
-                    "designation",
-                    "Designation",
-                    0,
-                    580,
-                    false,
-                    true
-                  )}
-                  {renderStyleControls(
-                    "profilePicture",
-                    "Profile Picture",
-                    0,
-                    580,
-                    true
-                  )}
+              <div className="flex">
+                <div className="h-[70vh] w-1/2 px-2 overflow-y-auto">
+                  <div className="grid grid-cols-2 gap-10">
+                    <div className="col-span-1 space-y-10">
+                      {renderStyleControls("name", "Name", 0, 580, false, true)}
+                      {renderStyleControls(
+                        "designation",
+                        "Designation",
+                        0,
+                        580,
+                        false,
+                        true
+                      )}
+                      {renderStyleControls(
+                        "profilePicture",
+                        "Profile Picture",
+                        0,
+                        580,
+                        true
+                      )}
+                    </div>
+                    <div className="col-span-1 space-y-10">
+                      {renderStyleControls(
+                        "institute",
+                        "Institute",
+                        0,
+                        580,
+                        false,
+                        true
+                      )}
+                      {renderStyleControls(
+                        "participantId",
+                        "Participant ID",
+                        0,
+                        580,
+                        false,
+                        true
+                      )}
+                      {renderStyleControls("qrCode", "QR Code", 0, 580)}
+                    </div>
+                  </div>
                 </div>
-                <div className="col-span-1 space-y-10">
-                  {renderStyleControls(
-                    "institute",
-                    "Institute",
-                    0,
-                    580,
-                    false,
-                    true
+                <div className=" h-[70vh] pl-4 flex justify-center w-1/2   items-center overflow-auto">
+                  {previewCard && (
+                    <IdCard
+                      card={previewCard}
+                      index={0}
+                      fetchData={fetchData}
+                      isLoading={isLoading}
+                      fetchDesignations={fetchDesignations}
+                      elementStyles={elementStyles}
+                      eventId={eventId}
+                      globalVisibility={globalVisibility}
+                      isPreview={true}
+                    />
                   )}
-                  {renderStyleControls(
-                    "participantId",
-                    "Participant ID",
-                    0,
-                    580,
-                    false,
-                    true
-                  )}
-                  {renderStyleControls("qrCode", "QR Code", 0, 580)}
                 </div>
               </div>
-            </div>
-            <div className="flex justify-end gap-6 mt-6 items-center">
-              <button
-                onClick={toggleModalOpenedit}
-                className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-              >
-                Close
-              </button>
-              <button
-                onClick={() => {
-                  saveDesignSettings();
-                  toggleModalOpenedit();
-                }}
-                className=" bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
-              >
-                Save Changes
-              </button>
+              <div className="flex justify-end gap-6 mt-6 items-center">
+                <button
+                  onClick={toggleModalOpenedit}
+                  className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+                >
+                  Close
+                </button>
+                <button
+                  onClick={() => {
+                    saveDesignSettings();
+                    toggleModalOpenedit();
+                  }}
+                  className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+                >
+                  Save Changes
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -596,8 +621,10 @@ const IdCard = ({
   elementStyles,
   eventId,
   globalVisibility,
+  isPreview = false,
 }) => {
   const [modal, setModal] = useState(false);
+  const [isPrinting, setIsPrinting] = useState(false);
   const idCardRef = useRef(null);
   const [isDownloading, setIsDownloading] = useState(false);
 
@@ -677,11 +704,6 @@ const IdCard = ({
   const downloadImageWithoutBackground = () => {
     const element = idCardRef.current;
     if (!element) return;
-    // const backgroundImage = element.querySelector("img");
-    // const originalBackgroundImage = backgroundImage ? backgroundImage.style.display : 'none';
-    // if (backgroundImage) backgroundImage.style.display = "none";
-    // // ...
-    // if (backgroundImage) backgroundImage.style.display = originalBackgroundImage;
     const originalBackgroundImage = element.querySelector("img").style.display;
     element.querySelector("img").style.display = "none";
 
@@ -710,13 +732,89 @@ const IdCard = ({
   if (!card) {
     return <div>Loading...</div>;
   }
+  // Renamed state
+
+  const printIdCard = (withBackground = true) => {
+    const element = idCardRef.current;
+    if (!element) return;
+
+    const backgroundImage = element.querySelector("img");
+    const originalDisplay = backgroundImage
+      ? backgroundImage.style.display
+      : null;
+
+    if (!withBackground && backgroundImage) {
+      backgroundImage.style.display = "none";
+    }
+
+    setIsPrinting(true); // Start printing when the process begins
+
+    toPng(element, {
+      cacheBust: true,
+      backgroundColor: null,
+      quality: 1,
+      pixelRatio: 3,
+    })
+      .then((dataUrl) => {
+        const printWindow = window.open("", "_blank");
+        printWindow.document.write(`
+          <html>
+            <head>
+              <title>Print ID Card</title>
+              <style>
+                @page {
+                  margin: 0;
+                  size: auto;
+                }
+                body {
+                  margin: 0;
+                  padding: 0;
+                  display: flex;
+                  justify-content: center;
+                  align-items: center;
+                  height: 100vh;
+                }
+                img {
+                  max-width: 100%;
+                  max-height: 100vh;
+                  object-fit: contain;
+                }
+              </style>
+            </head>
+            <body>
+              <img src="${dataUrl}" />
+              <script>
+                window.onload = function() {
+                  setTimeout(function() {
+                    window.print();
+                    window.onafterprint = function() {
+                      window.close();
+                    };
+                  }, 200);
+                };
+              </script>
+            </body>
+          </html>
+        `);
+        printWindow.document.close();
+      })
+      .catch((error) => {
+        console.error("Could not print the image", error);
+      })
+      .finally(() => {
+        setIsPrinting(false); // Stop printing after the process completes
+        if (backgroundImage) {
+          backgroundImage.style.display = originalDisplay;
+        }
+      });
+  };
 
   return (
-    <div className="relative mb-20 h-[580px] w-[430px]">
+    <div className={`relative ${isPreview ? "" : "mb-20"} h-[610px] w-[430px]`}>
       <div
         ref={idCardRef}
         id={`id-card-${index}`}
-        className="relative rounded-[1px] h-[600px] w-[430px]"
+        className="relative rounded-[1px] h-[610px] w-[430px]"
       >
         <div className="relative z-10 h-full text-white">
           <div className="absolute inset-0">
@@ -757,9 +855,9 @@ const IdCard = ({
                 }}
                 className="absolute top-[200px] uppercase left-[50%] transform -translate-x-1/2 text-[20px] font-bold text-center mt-2 w-full text-white"
               >
-                {/* <div className="flex justify-center gap-2 "> */}
-                  <p>{card.firstName}  {card.lastName}</p> 
-                {/* </div> */}
+                <p>
+                  {card.firstName} {card.lastName}
+                </p>
               </h2>
             )}
             {globalVisibility.institute && card.institute && (
@@ -814,133 +912,178 @@ const IdCard = ({
         </div>
       </div>
 
-      <div className="flex gap-4 mt-3 justify-center">
-        <button
-          onClick={toggleModal}
-          className="border text-black p-3 bg-gray-300 rounded-full hover:bg-gray-400"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            fill="currentColor"
-            className="bi bi-pencil-square"
-            viewBox="0 0 16 16"
-          >
-            <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z" />
-            <path
-              fillRule="evenodd"
-              d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"
-            />
-          </svg>
-        </button>
-        {modal && (
-          <EditParticipent
-            fetchData={fetchData}
-            eventId={eventId}
-            fetchDesignations={fetchDesignations}
-            toggleModal={toggleModal}
-            id={card._id}
-            data={card}
-          />
-        )}
-        <button
-          onClick={() => handleDelete(card._id)}
-          className="border text-black p-3 bg-gray-300 rounded-full hover:bg-gray-400"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            fill="currentColor"
-            className="bi bi-trash-fill"
-            viewBox="0 0 16 16"
-          >
-            <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0" />
-          </svg>
-        </button>
-        <button
-          onClick={downloadImage}
-          className="border text-black p-3 bg-gray-300 rounded-full"
-        >
-          {isDownloading ? (
-            <svg
-              className="animate-spin h-5 w-5 text-black"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
+      {!isPreview && (
+        <div>
+          <div className="flex gap-4 mt-3 justify-center">
+            <button
+              onClick={toggleModal}
+              className="border text-black p-3 bg-gray-300 rounded-full hover:bg-gray-400"
             >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              ></circle>
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.963 7.963 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              ></path>
-            </svg>
-          ) : (
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              fill="currentColor"
-              className="bi bi-download"
-              viewBox="0 0 16 16"
-            >
-              <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
-              <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
-            </svg>
-          )}
-        </button>
-        <button
-          onClick={downloadImageWithoutBackground}
-          className="border text-black p-3 bg-gray-300 hover:bg-gray-500 font-semibold rounded"
-        >
-          {isDownloading ? (
-            <svg
-              className="animate-spin h-5 w-5 text-black"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              ></circle>
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.963 7.963 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              ></path>
-            </svg>
-          ) : (
-            <div className="flex gap-2">
-              WithoutBackground
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="20"
                 height="20"
                 fill="currentColor"
-                className="bi bi-download"
+                className="bi bi-pencil-square"
                 viewBox="0 0 16 16"
               >
-                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
-                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z" />
+                <path
+                  fillRule="evenodd"
+                  d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"
+                />
               </svg>
-            </div>
-          )}
-        </button>
-      </div>
+            </button>
+            {modal && (
+              <EditParticipent
+                fetchData={fetchData}
+                eventId={eventId}
+                fetchDesignations={fetchDesignations}
+                toggleModal={toggleModal}
+                id={card._id}
+                data={card}
+              />
+            )}
+            <button
+              onClick={() => handleDelete(card._id)}
+              className="border text-black p-3 bg-gray-300 rounded-full hover:bg-gray-400"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                fill="currentColor"
+                className="bi bi-trash-fill"
+                viewBox="0 0 16 16"
+              >
+                <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0" />
+              </svg>
+            </button>
+            <button
+              onClick={downloadImage}
+              className="border text-black p-3 bg-gray-300 hover:bg-gray-400 rounded-full"
+            >
+              {isDownloading ? (
+                <svg
+                  className="animate-spin h-5 w-5 text-black"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.963 7.963 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+              ) : (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  fill="currentColor"
+                  className="bi bi-download"
+                  viewBox="0 0 16 16"
+                >
+                  <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                  <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                </svg>
+              )}
+            </button>
+            <button
+              onClick={downloadImageWithoutBackground}
+              className="border text-black p-3 bg-gray-300 hover:bg-gray-500 font-semibold rounded"
+            >
+              {isDownloading ? (
+                <svg
+                  className="animate-spin h-5 w-5 text-black"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.963 7.963 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+              ) : (
+                <div className="flex gap-2">
+                  WithoutBackground
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    fill="currentColor"
+                    className="bi bi-download"
+                    viewBox="0 0 16 16"
+                  >
+                    <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5" />
+                    <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z" />
+                  </svg>
+                </div>
+              )}
+            </button>
+          </div>
+          <div className="mt-3 flex mb-4 gap-4 items-center justify-center">
+            {isPrinting && (
+              <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-50">
+                <div className="loader border-t-4 border-b-4 border-gray-200 rounded-full w-12 h-12 animate-spin"></div>
+              </div>
+            )}
+            <button
+              onClick={() => printIdCard(true)}
+              className="bg-gray-300 mb-3 flex items-center justify-between gap-2 text-nowrap text-black font-semibold hover:bg-gray-400 py-2 px-4 rounded"
+            >
+              Print with Bg
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                fill="currentColor"
+                className="bi bi-printer"
+                viewBox="0 0 16 16"
+              >
+                <path d="M2.5 8a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1" />
+                <path d="M5 1a2 2 0 0 0-2 2v2H2a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h1v1a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-1h1a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-1V3a2 2 0 0 0-2-2zM4 3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2H4zm1 5a2 2 0 0 0-2 2v1H2a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v-1a2 2 0 0 0-2-2zm7 2v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1" />
+              </svg>
+            </button>
+            <button
+              onClick={() => printIdCard(false)}
+              className="bg-gray-300 flex items-center justify-between gap-2 mb-3 text-nowrap text-black font-semibold hover:bg-gray-400 py-2 px-4 rounded"
+            >
+              Print without Bg
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                fill="currentColor"
+                className="bi bi-printer"
+                viewBox="0 0 16 16"
+              >
+                <path d="M2.5 8a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1" />
+                <path d="M5 1a2 2 0 0 0-2 2v2H2a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h1v1a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-1h1a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-1V3a2 2 0 0 0-2-2zM4 3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2H4zm1 5a2 2 0 0 0-2 2v1H2a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v-1a2 2 0 0 0-2-2zm7 2v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
