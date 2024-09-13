@@ -630,7 +630,7 @@ const IdCard = ({
 
   const toggleModal = () => {
     setModal(!modal);
-    fetchDesignations(eventId);
+    fetchDesignations(eventId); 
   };
   const defaultElementStyles = {
     profilePicture: { bottom: 160, size: 170 },
